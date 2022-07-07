@@ -11,13 +11,13 @@ uint8_t flags;
 uint8_t stack_pointer;
 uint16_t program_counter;
 
-void init_registers() {
+void init_registers(uint16_t rom_start) {
 	acc = 0;
 	index_x = 0;
 	index_y = 0;
 	flags = 0;
 	stack_pointer = 255;
-	program_counter = ROM_START;
+	program_counter = rom_start;
 }
 
 #define NEGATIVE_FLAG 0x80

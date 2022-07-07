@@ -77,7 +77,7 @@ void _bpl(std::shared_ptr<Operand> operand) {
 }
 
 void _brk(std::shared_ptr<Operand> operand) {
-	int irq_vector = read_word(IRQ_VECTOR);
+	int irq_vector = read_word(irq_vector_addr);
 	if (!irq_vector) {
 		should_execute = false;
 		return;
@@ -86,11 +86,10 @@ void _brk(std::shared_ptr<Operand> operand) {
 	if (!get_interrupt_enable())
 		return;
 
-	stack_pointer -= 2;
-	write_word(STACK_BOTTOM + stack_pointer, program_counter + operand->get_insn_len());
-	stack_pointer--;
-	write_byte(STACK_BOTTOM + stack_pointer, flags);
+	push_word(program_counter + operand->get_insn_len() + 1); // Leave extra space for a break mark
+	push_byte(flags);
 	program_counter = irq_vector - operand->get_insn_len();
+	set_break(true);
 }
 
 void _bvc(std::shared_ptr<Operand> operand) {
@@ -180,8 +179,7 @@ void _jmp(std::shared_ptr<Operand> operand) {
 }
 
 void _jsr(std::shared_ptr<Operand> operand) {
-	stack_pointer -= 2;
-	write_word(STACK_BOTTOM + stack_pointer, program_counter + operand->get_insn_len());
+	push_word(program_counter + operand->get_insn_len());
 	program_counter = operand->get_val() - operand->get_insn_len();
 }
 
@@ -215,24 +213,20 @@ void _ora(std::shared_ptr<Operand> operand) {
 }
 
 void _pha(std::shared_ptr<Operand> operand) {
-	stack_pointer--;
-	write_byte(STACK_BOTTOM + stack_pointer, acc);
+	push_byte(acc);
 }
 
 void _php(std::shared_ptr<Operand> operand) {
-	stack_pointer--;
-	write_byte(STACK_BOTTOM + stack_pointer, flags);
+	push_byte(flags);
 }
 
 void _pla(std::shared_ptr<Operand> operand) {
-	acc = read_byte(STACK_BOTTOM + stack_pointer);
-	stack_pointer++;
+	acc = pop_byte();
 	handle_arithmetic_flags(acc);
 }
 
 void _plp(std::shared_ptr<Operand> operand) {
-	flags = read_byte(STACK_BOTTOM + stack_pointer);
-	stack_pointer++;
+	flags = pop_byte();
 }
 
 void _rol(std::shared_ptr<Operand> operand) {
@@ -250,15 +244,12 @@ void _ror(std::shared_ptr<Operand> operand) {
 }
 
 void _rti(std::shared_ptr<Operand> operand) {
-	flags = read_byte(STACK_BOTTOM + stack_pointer);
-	stack_pointer++;
-	program_counter = read_word(STACK_BOTTOM + stack_pointer) - operand->get_insn_len();
-	stack_pointer += 2;
+	flags = pop_byte();
+	program_counter = pop_word() - operand->get_insn_len();
 }
 
 void _rts(std::shared_ptr<Operand> operand) {
-	program_counter = read_word(STACK_BOTTOM + stack_pointer) - operand->get_insn_len();
-	stack_pointer += 2;
+	program_counter = pop_word() - operand->get_insn_len();
 }
 
 void _sbc(std::shared_ptr<Operand> operand) {

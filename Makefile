@@ -1,7 +1,7 @@
 CC=g++ -g -std=gnu++11
 atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o
 	${CC} main.o registers.o memory.o operand.o instructions.o cpu.o -o atari2600
-main.o: main.cc cpu.h registers.h memory.h
+main.o: main.cc cpu.h registers.h memory.h atari.h
 	${CC} -c main.cc
 registers.o: registers.h registers.cc
 	${CC} -c registers.cc

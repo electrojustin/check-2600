@@ -10,7 +10,7 @@ extern uint8_t flags;
 extern uint8_t stack_pointer;
 extern uint16_t program_counter;
 
-void init_registers();
+void init_registers(uint16_t rom_start);
 
 bool get_negative();
 void set_negative(bool val);

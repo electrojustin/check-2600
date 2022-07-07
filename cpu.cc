@@ -8,11 +8,6 @@
 bool should_execute;
 
 void execute_next_insn() {
-	if (program_counter > RAM_SIZE-4) {
-		printf("Error! At end of ROM!\n");
-		panic();
-	}
-
 	uint8_t opcode = read_byte(program_counter);
 	uint8_t byte1 = read_byte(program_counter+1);
 	uint8_t byte2 = read_byte(program_counter+2);
