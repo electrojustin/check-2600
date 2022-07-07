@@ -6,7 +6,6 @@
 
 void handle_arithmetic_flags(int result) {
 	set_zero(!(result & 0xFF));
-	set_carry(result & (~0xFF));
 	set_negative(result & 0x80);
 }
 
@@ -25,6 +24,7 @@ void _adc(std::shared_ptr<Operand> operand) {
 	int result = operand->get_val() + acc + carry;
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), acc, result);
+	set_carry(result & (~0xFF));
 	acc = result & 0xFF;
 }
 
@@ -37,8 +37,8 @@ void _and(std::shared_ptr<Operand> operand) {
 void _asl(std::shared_ptr<Operand> operand) {
 	int result = ((acc & 0x7F) << operand->get_val()) | (acc & 0x80);
 	handle_arithmetic_flags(result);
+	set_carry(result & (~0xFF));
 	acc = result & 0xFF;
-
 	cycle_num += 2;
 }
 
@@ -162,18 +162,21 @@ void _cmp(std::shared_ptr<Operand> operand) {
 	int result = (acc - operand->get_val()) & 0xFF;
 	handle_overflow(acc, operand->get_val(), result);
 	handle_arithmetic_flags(result);
+	set_carry(!(result & (~0xFF)));
 }
 
 void _cpx(std::shared_ptr<Operand> operand) {
 	int result = (index_x - operand->get_val()) & 0xFF;
 	handle_overflow(index_x, operand->get_val(), result);
 	handle_arithmetic_flags(result);
+	set_carry(!(result & (~0xFF)));
 }
 
 void _cpy(std::shared_ptr<Operand> operand) {
 	int result = (index_y - operand->get_val()) & 0xFF;
 	handle_overflow(index_y, operand->get_val(), result);
 	handle_arithmetic_flags(result);
+	set_carry(!(result & (~0xFF)));
 }
 
 void _dec(std::shared_ptr<Operand> operand) {
@@ -249,6 +252,7 @@ void _ldy(std::shared_ptr<Operand> operand) {
 void _lsr(std::shared_ptr<Operand> operand) {
 	int result = acc >> operand->get_val();
 	handle_arithmetic_flags(result);
+	set_carry(result & (~0xFF));
 	acc = result & 0xFF;
 	cycle_num += 2;
 }
@@ -288,6 +292,7 @@ void _rol(std::shared_ptr<Operand> operand) {
 	int val = operand->get_val();
 	int result = ((acc << val) | (acc >> (8-val))) & 0xFF;
 	handle_arithmetic_flags(result);
+	set_carry(result & (~0xFF));
 	acc = result;
 	cycle_num += 2;
 }
@@ -296,6 +301,7 @@ void _ror(std::shared_ptr<Operand> operand) {
 	int val = operand->get_val();
 	int result = ((acc >> val) | (acc << (8-val))) & 0xFF;
 	handle_arithmetic_flags(result);
+	set_carry(result & (~0xFF));
 	acc = result;
 	cycle_num += 2;
 }
@@ -312,10 +318,11 @@ void _rts(std::shared_ptr<Operand> operand) {
 }
 
 void _sbc(std::shared_ptr<Operand> operand) {
-	int carry = get_carry() ? 1 : 0;
+	int carry = get_carry() ? 0 : 1;
 	int result = acc - operand->get_val() - carry;
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), acc, result);
+	set_carry(!(result & (~0xFF)));
 	acc = result & 0xFF;
 }
 

@@ -17,7 +17,7 @@ void init_registers(uint16_t rom_start) {
 	acc = 0;
 	index_x = 0;
 	index_y = 0;
-	flags = 0;
+	flags = 0b00110110;
 	stack_pointer = 255;
 	program_counter = rom_start;
 	cycle_num = 0;

@@ -41,8 +41,11 @@ int main(int argc, char** argv) {
 	irq_vector_addr = IRQ_VECTOR;
 	write_word(IRQ_VECTOR, 0);
 
-	while(should_execute)
+	while(should_execute) {
+	//	dump_regs();
 		execute_next_insn();
+	//	getchar();
+	}
 
 	dump_regs();
 

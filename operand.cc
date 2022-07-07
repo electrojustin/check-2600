@@ -15,7 +15,9 @@ public:
 	}
 
 	int get_val() override {
-		return program_counter + offset;
+		// Note that relative refers to relative to the next instruction.
+		// The program counter is supposed to already be pointer there.
+		return program_counter + offset + get_insn_len();
 	}
 
 	void set_val(int val) override {
