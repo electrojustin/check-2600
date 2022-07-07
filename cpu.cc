@@ -18,4 +18,6 @@ void execute_next_insn() {
 	insn(operand);
 
 	program_counter += operand->get_insn_len();
+
+	cycle_num += operand->get_cycle_penalty();
 }

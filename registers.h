@@ -10,6 +10,9 @@ extern uint8_t flags;
 extern uint8_t stack_pointer;
 extern uint16_t program_counter;
 
+// Not a real register, just here to help us with cycle accurate timing
+extern uint64_t cycle_num;
+
 void init_registers(uint16_t rom_start);
 
 bool get_negative();

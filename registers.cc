@@ -11,6 +11,8 @@ uint8_t flags;
 uint8_t stack_pointer;
 uint16_t program_counter;
 
+uint64_t cycle_num;
+
 void init_registers(uint16_t rom_start) {
 	acc = 0;
 	index_x = 0;
@@ -18,6 +20,7 @@ void init_registers(uint16_t rom_start) {
 	flags = 0;
 	stack_pointer = 255;
 	program_counter = rom_start;
+	cycle_num = 0;
 }
 
 #define NEGATIVE_FLAG 0x80
@@ -64,6 +67,7 @@ void dump_regs() {
 	printf("Flags: %x\n", flags);
 	printf("SP: %x\n", stack_pointer);
 	printf("PC: %x\n", program_counter);
+	printf("Cycle: %lu\n", cycle_num);
 }
 
 void panic() {

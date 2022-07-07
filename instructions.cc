@@ -38,21 +38,35 @@ void _asl(std::shared_ptr<Operand> operand) {
 	int result = ((acc & 0x7F) << operand->get_val()) | (acc & 0x80);
 	handle_arithmetic_flags(result);
 	acc = result & 0xFF;
+
+	cycle_num += 2;
 }
 
 void _bcc(std::shared_ptr<Operand> operand) {
-	if (!get_carry())
+	if (!get_carry()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _bcs(std::shared_ptr<Operand> operand) {
-	if (get_carry())
+	if (get_carry()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _beq(std::shared_ptr<Operand> operand) {
-	if (get_zero())
+	if (get_zero()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _bit(std::shared_ptr<Operand> operand) {
@@ -62,18 +76,30 @@ void _bit(std::shared_ptr<Operand> operand) {
 }
 
 void _bmi(std::shared_ptr<Operand> operand) {
-	if (get_negative())
+	if (get_negative()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _bne(std::shared_ptr<Operand> operand) {
-	if (!get_zero())
+	if (!get_zero()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _bpl(std::shared_ptr<Operand> operand) {
-	if (!get_negative())
+	if (!get_negative()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _brk(std::shared_ptr<Operand> operand) {
@@ -90,32 +116,46 @@ void _brk(std::shared_ptr<Operand> operand) {
 	push_byte(flags);
 	program_counter = irq_vector - operand->get_insn_len();
 	set_break(true);
+
+	cycle_num += 7;
 }
 
 void _bvc(std::shared_ptr<Operand> operand) {
-	if (!get_overflow())
+	if (!get_overflow()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _bvs(std::shared_ptr<Operand> operand) {
-	if (get_overflow())
+	if (get_overflow()) {
 		program_counter = operand->get_val() - operand->get_insn_len();
+		cycle_num++;
+	}
+
+	cycle_num += 2;
 }
 
 void _clc(std::shared_ptr<Operand> operand) {
 	set_carry(false);
+	cycle_num += 2;
 }
 
 void _cld(std::shared_ptr<Operand> operand) {
 	set_decimal(false);
+	cycle_num += 2;
 }
 
 void _cli(std::shared_ptr<Operand> operand) {
 	set_interrupt_enable(false);
+	cycle_num += 2;
 }
 
 void _clv(std::shared_ptr<Operand> operand) {
 	set_overflow(false);
+	cycle_num += 2;
 }
 
 void _cmp(std::shared_ptr<Operand> operand) {
@@ -140,16 +180,19 @@ void _dec(std::shared_ptr<Operand> operand) {
 	int result = operand->get_val() - 1;
 	handle_arithmetic_flags(result);
 	operand->set_val(result & 0xFF);
+	cycle_num += 2;
 }
 
 void _dex(std::shared_ptr<Operand> operand) {
 	index_x--;
 	handle_arithmetic_flags(index_x);
+	cycle_num += 2;
 }
 
 void _dey(std::shared_ptr<Operand> operand) {
 	index_y--;
 	handle_arithmetic_flags(index_y);
+	cycle_num += 2;
 }
 
 void _eor(std::shared_ptr<Operand> operand) {
@@ -162,25 +205,30 @@ void _inc(std::shared_ptr<Operand> operand) {
 	int result = operand->get_val() + 1;
 	handle_arithmetic_flags(result);
 	operand->set_val(result & 0xFF);
+	cycle_num += 2;
 }
 
 void _inx(std::shared_ptr<Operand> operand) {
 	index_x++;
 	handle_arithmetic_flags(index_x);
+	cycle_num += 2;
 }
 
 void _iny(std::shared_ptr<Operand> operand) {
 	index_y++;
 	handle_arithmetic_flags(index_y);
+	cycle_num += 2;
 }
 
 void _jmp(std::shared_ptr<Operand> operand) {
 	program_counter = operand->get_val() - operand->get_insn_len();
+	cycle_num--; // Weird hack for this particular instruction.
 }
 
 void _jsr(std::shared_ptr<Operand> operand) {
 	push_word(program_counter + operand->get_insn_len());
 	program_counter = operand->get_val() - operand->get_insn_len();
+	cycle_num += 2;
 }
 
 void _lda(std::shared_ptr<Operand> operand) {
@@ -202,9 +250,12 @@ void _lsr(std::shared_ptr<Operand> operand) {
 	int result = acc >> operand->get_val();
 	handle_arithmetic_flags(result);
 	acc = result & 0xFF;
+	cycle_num += 2;
 }
 
-void _nop(std::shared_ptr<Operand> operand) {}
+void _nop(std::shared_ptr<Operand> operand) {
+	cycle_num += 2;
+}
 
 void _ora(std::shared_ptr<Operand> operand) {
 	int result = acc | operand->get_val();
@@ -214,19 +265,23 @@ void _ora(std::shared_ptr<Operand> operand) {
 
 void _pha(std::shared_ptr<Operand> operand) {
 	push_byte(acc);
+	cycle_num += 3;
 }
 
 void _php(std::shared_ptr<Operand> operand) {
 	push_byte(flags);
+	cycle_num += 3;
 }
 
 void _pla(std::shared_ptr<Operand> operand) {
 	acc = pop_byte();
 	handle_arithmetic_flags(acc);
+	cycle_num += 4;
 }
 
 void _plp(std::shared_ptr<Operand> operand) {
 	flags = pop_byte();
+	cycle_num += 4;
 }
 
 void _rol(std::shared_ptr<Operand> operand) {
@@ -234,6 +289,7 @@ void _rol(std::shared_ptr<Operand> operand) {
 	int result = ((acc << val) | (acc >> (8-val))) & 0xFF;
 	handle_arithmetic_flags(result);
 	acc = result;
+	cycle_num += 2;
 }
 
 void _ror(std::shared_ptr<Operand> operand) {
@@ -241,15 +297,18 @@ void _ror(std::shared_ptr<Operand> operand) {
 	int result = ((acc >> val) | (acc << (8-val))) & 0xFF;
 	handle_arithmetic_flags(result);
 	acc = result;
+	cycle_num += 2;
 }
 
 void _rti(std::shared_ptr<Operand> operand) {
 	flags = pop_byte();
 	program_counter = pop_word() - operand->get_insn_len();
+	cycle_num += 6;
 }
 
 void _rts(std::shared_ptr<Operand> operand) {
 	program_counter = pop_word() - operand->get_insn_len();
+	cycle_num += 6;
 }
 
 void _sbc(std::shared_ptr<Operand> operand) {
@@ -262,14 +321,17 @@ void _sbc(std::shared_ptr<Operand> operand) {
 
 void _sec(std::shared_ptr<Operand> operand) {
 	set_carry(true);
+	cycle_num += 2;
 }
 
 void _sed(std::shared_ptr<Operand> operand) {
 	set_decimal(true);
+	cycle_num += 2;
 }
 
 void _sei(std::shared_ptr<Operand> operand) {
 	set_interrupt_enable(true);
+	cycle_num += 2;
 }
 
 void _sta(std::shared_ptr<Operand> operand) {
@@ -287,31 +349,37 @@ void _sty(std::shared_ptr<Operand> operand) {
 void _tax(std::shared_ptr<Operand> operand) {
 	index_x = acc;
 	handle_arithmetic_flags(index_x);
+	cycle_num += 2;
 }
 
 void _tay(std::shared_ptr<Operand> operand) {
 	index_y = acc;
 	handle_arithmetic_flags(index_y);
+	cycle_num += 2;
 }
 
 void _tsx(std::shared_ptr<Operand> operand) {
 	stack_pointer = index_x;
 	handle_arithmetic_flags(stack_pointer);
+	cycle_num += 2;
 }
 
 void _txa(std::shared_ptr<Operand> operand) {
 	acc = index_x;
 	handle_arithmetic_flags(acc);
+	cycle_num += 2;
 }
 
 void _txs(std::shared_ptr<Operand> operand) {
 	stack_pointer = index_x;
 	handle_arithmetic_flags(stack_pointer);
+	cycle_num += 2;
 }
 
 void _tya(std::shared_ptr<Operand> operand) {
 	acc = index_y;
 	handle_arithmetic_flags(acc);
+	cycle_num += 2;
 }
 
 std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {

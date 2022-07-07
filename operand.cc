@@ -26,6 +26,10 @@ public:
 	int get_insn_len() override {
 		return 2;
 	}
+
+	int get_cycle_penalty() override {
+		return 0;
+	}
 };
 
 class IndirectX : public Operand {
@@ -49,14 +53,20 @@ public:
 	int get_insn_len() override {
 		return 2;
 	}
+
+	int get_cycle_penalty() override {
+		return 6;
+	}
 };
 
 class IndirectY : public Operand {
 	uint8_t zero_page_addr;
+	bool extra_cycle;
 
 public:
-	IndirectY(uint8_t zero_page_addr) {
+	IndirectY(uint8_t zero_page_addr, bool extra_cycle=false) {
 		this->zero_page_addr = zero_page_addr;
+		this->extra_cycle = extra_cycle;
 	}
 
 	int get_val() override {
@@ -71,6 +81,10 @@ public:
 
 	int get_insn_len() override {
 		return 2;
+	}
+
+	int get_cycle_penalty() override {
+		return extra_cycle ? 6 : 5;
 	}
 };
 
@@ -95,6 +109,10 @@ public:
 	int get_insn_len() override {
 		return 2;
 	}
+
+	int get_cycle_penalty() override {
+		return 6;
+	}
 };
 
 class Immediate : public Operand {
@@ -117,16 +135,22 @@ public:
 	int get_insn_len() override {
 		return 2;
 	}
+
+	int get_cycle_penalty() override {
+		return 2;
+	}
 };
 
 class ZeroPage : public Operand {
 	uint8_t zero_page_addr;
 	uint8_t index;
+	bool is_indexed;
 
 public:
-	ZeroPage(uint8_t zero_page_addr, uint8_t index) {
+	ZeroPage(uint8_t zero_page_addr, uint8_t index, bool is_indexed) {
 		this->zero_page_addr = zero_page_addr;
 		this->index = index;
+		this->is_indexed = is_indexed;
 	}
 
 	int get_val() override {
@@ -140,14 +164,19 @@ public:
 	int get_insn_len() override {
 		return 2;
 	}
+
+	int get_cycle_penalty() override {
+		return is_indexed ? 4 : 3;
+	}
 };
 
 class Absolute : public Operand {
 	uint16_t addr;
 	uint8_t index;
+	bool extra_cycle;
 
 public:
-	Absolute(uint16_t addr, uint8_t index) {
+	Absolute(uint16_t addr, uint8_t index, bool extra_cycle) {
 		this->addr = addr;
 		this->index = index;
 	}
@@ -162,6 +191,10 @@ public:
 
 	int get_insn_len() override {
 		return 3;
+	}
+
+	int get_cycle_penalty() override {
+		return extra_cycle ? 5 : 4;
 	}
 };
 
@@ -182,6 +215,10 @@ public:
 	int get_insn_len() override {
 		return 1;
 	}
+
+	int get_cycle_penalty() override {
+		return 0;
+	}
 };
 
 class Accumulator : public Operand {
@@ -199,6 +236,10 @@ public:
 	int get_insn_len() override {
 		return 1;
 	}
+
+	int get_cycle_penalty() override {
+		return 0;
+	}
 };
 
 std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t byte2) {
@@ -211,7 +252,7 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			if (high_nibble & 1) {
 				return std::make_shared<Relative>(byte1);
 			} else if (high_nibble == 2) {
-				return std::make_shared<Absolute>(abs_word, 0);
+				return std::make_shared<Absolute>(abs_word, 0, false);
 			} else if (high_nibble == 0xA || high_nibble == 0xC || high_nibble == 0xE) {
 				return std::make_shared<Immediate>(byte1);
 			} else if (!high_nibble || high_nibble == 0x4 || high_nibble == 0x6) {
@@ -220,7 +261,7 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			break;
 		case 1:
 			if (high_nibble & 1) {
-				return std::make_shared<IndirectY>(byte1);
+				return std::make_shared<IndirectY>(byte1, opcode == 0x91);
 			} else {
 				return std::make_shared<IndirectX>(byte1);
 			}
@@ -230,32 +271,32 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			break;
 		case 4:
 			if (high_nibble == 2 || ((high_nibble & 0x8) && !(high_nibble & 1))) {
-				return std::make_shared<ZeroPage>(byte1, 0);
+				return std::make_shared<ZeroPage>(byte1, 0, false);
 			} else if (high_nibble == 0x9 || high_nibble == 0xB) {
-				return std::make_shared<ZeroPage>(byte1, index_x);
+				return std::make_shared<ZeroPage>(byte1, index_x, true);
 			}
 			break;
 		case 5:
 			if (high_nibble & 1) {
-				return std::make_shared<ZeroPage>(byte1, index_x);
+				return std::make_shared<ZeroPage>(byte1, index_x, true);
 			} else {
-				return std::make_shared<ZeroPage>(byte1, 0);
+				return std::make_shared<ZeroPage>(byte1, 0, false);
 			}
 		case 6:
 			if (high_nibble & 1) {
 				if (high_nibble == 0x9 || high_nibble == 0xB) {
-					return std::make_shared<ZeroPage>(byte1, index_y);
+					return std::make_shared<ZeroPage>(byte1, index_y, true);
 				} else {
-					return std::make_shared<ZeroPage>(byte1, index_x);
+					return std::make_shared<ZeroPage>(byte1, index_x, true);
 				}
 			} else {
-				return std::make_shared<ZeroPage>(byte1, 0);
+				return std::make_shared<ZeroPage>(byte1, 0, false);
 			}
 		case 8:
 			return std::make_shared<Implied>();
 		case 9:
 			if (high_nibble & 1) {
-				return std::make_shared<Absolute>(abs_word, index_y);
+				return std::make_shared<Absolute>(abs_word, index_y, opcode == 0x99);
 			} else {
 				if (high_nibble == 0x8) {
 					break;
@@ -272,26 +313,28 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			break;
 		case 0xC:
 			if (high_nibble && !(high_nibble & 0x1) && high_nibble != 0x6) {
-				return std::make_shared<Absolute>(abs_word, 0);
+				return std::make_shared<Absolute>(abs_word, 0, false);
 			} else if (high_nibble == 0x6) {
 				return std::make_shared<Indirect>(byte1);
 			} else if (high_nibble == 0xB) {
-				return std::make_shared<Absolute>(abs_word, index_x);
+				return std::make_shared<Absolute>(abs_word, index_x, false);
 			}
 			break;
 		case 0xD:
 			if (high_nibble & 1) {
-				return std::make_shared<Absolute>(abs_word, index_x);
+				return std::make_shared<Absolute>(abs_word, index_x, opcode == 0x9D);
 			} else {
-				return std::make_shared<Absolute>(abs_word, 0);
+				return std::make_shared<Absolute>(abs_word, 0, false);
 			}
 		case 0xE:
 			if (high_nibble == 0x9) {
 				break;
+			} else if (high_nibble == 0xB) {
+				return std::make_shared<Absolute>(abs_word, index_y, false);
 			} else if (high_nibble & 0x1) {
-				return std::make_shared<Absolute>(abs_word, index_x);
+				return std::make_shared<Absolute>(abs_word, index_x, true);
 			} else {
-				return std::make_shared<Absolute>(abs_word, 0);
+				return std::make_shared<Absolute>(abs_word, 0, false);
 			}
 		default:
 			break;
