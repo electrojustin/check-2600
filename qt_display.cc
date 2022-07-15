@@ -139,7 +139,7 @@ const uint8_t color_palette[] = {
 void QtDisplay::convert_framebufs() {
 	for (int i = 0; i < width*height; i++) {
 		uint8_t val = framebuf[i];
-		val = (val & 0x0F) | ((val & 0xE0) >> 1);
+		val = ((val & 0x0E) << 3) | ((val & 0xF0) >> 4);
 		((uint32_t*)actual_framebuf)[i] = ((uint32_t*)color_palette)[val];
 	}
 }
