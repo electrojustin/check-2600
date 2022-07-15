@@ -47,11 +47,11 @@ public:
 
 class DmaRegion : public MemoryRegion {
 private:
-	std::function<uint16_t(uint16_t)> read_hook;
+	std::function<uint8_t(uint16_t)> read_hook;
 	std::function<void(uint16_t, uint8_t)> write_hook;
 
 public:
-	DmaRegion(uint16_t start_addr, uint16_t end_addr, std::function<uint16_t(uint16_t)> read_hook, std::function<void(uint16_t, uint8_t)> write_hook);
+	DmaRegion(uint16_t start_addr, uint16_t end_addr, std::function<uint8_t(uint16_t)> read_hook, std::function<void(uint16_t, uint8_t)> write_hook);
 	uint8_t read_byte(uint16_t addr) override;
 	void write_byte(uint16_t addr, uint8_t val) override;
 };

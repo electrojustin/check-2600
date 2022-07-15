@@ -56,7 +56,7 @@ void RomRegion::write_byte(uint16_t addr, uint8_t val) {
 	panic();
 }
 
-DmaRegion::DmaRegion(uint16_t start_addr, uint16_t end_addr, std::function<uint16_t(uint16_t)> read_hook, std::function<void(uint16_t, uint8_t)> write_hook) {
+DmaRegion::DmaRegion(uint16_t start_addr, uint16_t end_addr, std::function<uint8_t(uint16_t)> read_hook, std::function<void(uint16_t, uint8_t)> write_hook) {
 	this->start_addr = start_addr;
 	this->end_addr = end_addr;
 	this->read_hook = read_hook;

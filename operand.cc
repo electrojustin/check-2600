@@ -93,21 +93,21 @@ public:
 };
 
 class Indirect : public Operand {
-	uint8_t zero_page_addr;
+	uint8_t absolute_addr;
 
 public:
-	Indirect(uint8_t zero_page_addr) {
-		this->zero_page_addr = zero_page_addr;
+	Indirect(uint16_t absolute_addr) {
+		this->absolute_addr = absolute_addr;
 	}
 
 	int get_val() override {
-		uint16_t absolute_addr = read_word(zero_page_addr);
-		return read_byte(absolute_addr);
+		uint16_t indirect_addr = read_word(absolute_addr);
+		return read_word(indirect_addr);
 	}
 
 	void set_val(int val) override {
-		uint16_t absolute_addr = read_word(zero_page_addr);
-		write_byte(absolute_addr, val);
+		uint16_t indirect_addr = read_word(absolute_addr);
+		write_word(indirect_addr, val);
 	}
 
 	int get_insn_len() override {
@@ -178,15 +178,22 @@ class Absolute : public Operand {
 	uint16_t addr;
 	uint8_t index;
 	bool extra_cycle;
+	bool should_read_word;
 
 public:
-	Absolute(uint16_t addr, uint8_t index, bool extra_cycle) {
+	Absolute(uint16_t addr, uint8_t index, bool extra_cycle, bool should_read_word=false) {
 		this->addr = addr;
 		this->index = index;
+		this->extra_cycle = extra_cycle;
+		this->should_read_word = should_read_word;
 	}
 
 	int get_val() override {
-		return read_byte(addr + index);
+		if (!should_read_word) {
+			return read_byte(addr + index);
+		} else {
+			return read_word(addr + index);
+		}
 	}
 
 	void set_val(int val) override {
@@ -257,7 +264,7 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			if (high_nibble & 1) {
 				return std::make_shared<Relative>(byte1);
 			} else if (high_nibble == 2) {
-				return std::make_shared<Absolute>(abs_word, 0, false);
+				return std::make_shared<Absolute>(program_counter+1, 0, false);
 			} else if (high_nibble == 0xA || high_nibble == 0xC || high_nibble == 0xE) {
 				return std::make_shared<Immediate>(byte1);
 			} else if (!high_nibble || high_nibble == 0x4 || high_nibble == 0x6) {
@@ -318,9 +325,9 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			break;
 		case 0xC:
 			if (high_nibble && !(high_nibble & 0x1) && high_nibble != 0x6) {
-				return std::make_shared<Absolute>(abs_word, 0, false);
+				return std::make_shared<Absolute>(program_counter+1, 0, false, true);
 			} else if (high_nibble == 0x6) {
-				return std::make_shared<Indirect>(byte1);
+				return std::make_shared<Indirect>(program_counter+1);
 			} else if (high_nibble == 0xB) {
 				return std::make_shared<Absolute>(abs_word, index_x, false);
 			}

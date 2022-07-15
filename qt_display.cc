@@ -1,5 +1,8 @@
 #include "qt_display.h"
 
+#include "atari.h"
+#include "registers.h"
+
 // NTSC color palette
 // Stored in BGRA format
 const uint8_t color_palette[] = {
@@ -160,18 +163,21 @@ QtDisplay::~QtDisplay() {
 }
 
 void QtDisplay::swap_buf() {
-	QPainter qp(this);
-
+	framebuf_mutex.lock();
 	convert_framebufs();
+	framebuf_mutex.unlock();
 
-	QImage image(actual_framebuf, width, height, width*4, QImage::Format_RGB32);
-	qp.drawImage(0, 0, image);
+	this->repaint();
 }
 
 void QtDisplay::paintEvent(QPaintEvent* e) {
 	Q_UNUSED(e);
+	QPainter qp(this);
 
-	swap_buf();
+	framebuf_mutex.lock();
+	QImage image(actual_framebuf, width, height, width*4, QImage::Format_RGB32);
+	qp.drawImage(0, 0, image);
+	framebuf_mutex.unlock();
 }
 
 void QtDisplay::timerEvent(QTimerEvent* e) {

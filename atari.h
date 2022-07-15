@@ -13,4 +13,8 @@
 #define STACK_TOP 0x1FF
 #define STACK_BOTTOM 0x100
 
+void load_program_file(const char* filename);
+
+void start_emulation_thread();
+
 #endif
