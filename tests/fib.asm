@@ -1,0 +1,22 @@
+LDA #$0A
+
+; Inputs through A
+FIB:
+SBC #$02
+STA $FC ; Store A in 0xFD
+LDA #$00
+STA $FD ; Prev prev
+LDA #$01
+STA $FE ; Prev
+LDA $FC
+FIBLOOP:
+LDA $FD
+ADC $FE
+STA $FF ; Cur
+LDA $FE
+STA $FD
+LDA $FF
+STA $FE
+DEC $FC
+BNE FIBLOOP
+LDA $FF
