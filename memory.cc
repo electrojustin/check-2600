@@ -113,6 +113,7 @@ uint8_t read_byte(uint16_t addr) {
 
 	printf("Error! Invalid read at address %x\n", addr);
 	panic();
+	return -1;
 }
 
 void write_byte(uint16_t addr, uint8_t val) {

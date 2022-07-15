@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,6 +8,7 @@
 #include "cpu.h"
 #include "registers.h"
 #include "memory.h"
+#include "qt_display.h"
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
@@ -50,4 +52,20 @@ int main(int argc, char** argv) {
 	dump_regs();
 
 	free(rom_backing);
+
+	QApplication app(argc, argv);
+
+	QtDisplay display(160, 262);
+
+	memset(display.framebuf, 0, 160*262);
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 128; j++) {
+			display.framebuf[i*160 + j] = ((i/8) << 4) | (j/8);
+		}
+	}
+
+	display.setWindowTitle("test");
+	display.show();
+
+	return app.exec();
 }

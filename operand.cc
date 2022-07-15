@@ -207,6 +207,7 @@ public:
 	int get_val() override {
 		printf("Error! Implied operands do not support get!\n");
 		panic();
+		return 0;
 	}
 
 	void set_val(int val) override {

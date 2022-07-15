@@ -1,5 +1,7 @@
 #include "instructions.h"
 
+#include <stdio.h>
+
 #include "registers.h"
 #include "memory.h"
 #include "cpu.h"
