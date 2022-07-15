@@ -8,7 +8,7 @@
 #include "cpu.h"
 #include "registers.h"
 #include "memory.h"
-#include "qt_display.h"
+#include "ntsc.h"
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
@@ -55,17 +55,20 @@ int main(int argc, char** argv) {
 
 	QApplication app(argc, argv);
 
-	QtDisplay display(160, 262);
+	NTSC ntsc;
 
-	memset(display.framebuf, 0, 160*262);
-	for (int i = 0; i < 128; i++) {
-		for (int j = 0; j < 128; j++) {
-			display.framebuf[i*160 + j] = ((i/8) << 4) | (j/8);
+	for (int i = 0; i < NTSC::scanlines; i++) {
+		for (int j = 0; j < NTSC::columns; j++) {
+			int visible_y = i - NTSC::vsync_lines - NTSC::vblank;
+			int visible_x = j - NTSC::hblank; 
+			if (visible_y >= 0 && visible_y < 128 &&
+			    visible_x >= 0 && visible_x < 128) {
+				ntsc.write_pixel(((visible_y/8) << 4) | (visible_x/8));
+			} else {
+				ntsc.write_pixel();
+			}
 		}
 	}
-
-	display.setWindowTitle("test");
-	display.show();
 
 	return app.exec();
 }

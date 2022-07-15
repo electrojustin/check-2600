@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+// TODO: Calculate penalties incurred by accessing out-of-page addresses.
 class Relative : public Operand {
 	int8_t offset;
 

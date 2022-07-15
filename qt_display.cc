@@ -1,5 +1,6 @@
 #include "qt_display.h"
 
+// NTSC color palette
 // Stored in BGRA format
 const uint8_t color_palette[] = {
 	0, 0, 0, 255,
@@ -148,6 +149,9 @@ QtDisplay::QtDisplay(int width, int height) : QWidget(nullptr) {
 	actual_framebuf = (uint8_t*)malloc(4*width*height);
 
 	setFixedSize(width, height);
+
+	setWindowTitle("test");
+	show();
 }
 
 QtDisplay::~QtDisplay() {

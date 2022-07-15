@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <memory>
 
 #ifndef DISPLAY_H
 #define DISPLAY_H
@@ -9,5 +10,7 @@ public:
 
 	virtual void swap_buf() = 0;
 };
+
+std::unique_ptr<Display> create_display(int width, int height);
 
 #endif
