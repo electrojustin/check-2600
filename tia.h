@@ -22,10 +22,15 @@ class TIA {
 	bool playfield_mirrored = false;
 
 	int player0_x = 0;
+	int player0_motion = 0;
 	int player1_x = 0;
+	int player1_motion = 0;
 	int missile0_x = 0;
+	int missile0_motion = 0;
 	int missile1_x = 0;
+	int missile1_motion = 0;
 	int ball_x = 0;
+	int ball_motion = 0;
 	uint8_t player0_mask = 0;
 	uint8_t player1_mask = 0;
 	uint8_t player0_color = 0;
@@ -64,6 +69,13 @@ class TIA {
 	void resbl(uint8_t val);
 	void grp0(uint8_t val);
 	void grp1(uint8_t val);
+	void hmp0(uint8_t val);
+	void hmp1(uint8_t val);
+	void hmm0(uint8_t val);
+	void hmm1(uint8_t val);
+	void hmbl(uint8_t val);
+	void hmove(uint8_t val);
+	void hmclr(uint8_t val);
 public:
 	// Ratio of TIA clock to CPU clock
 	const static int tia_cycle_ratio = 3;

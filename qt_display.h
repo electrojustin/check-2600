@@ -20,9 +20,9 @@ class QtDisplay : public Display, public QWidget {
 	void convert_framebufs();
 
 protected:
-	void paintEvent(QPaintEvent* e);
-	void timerEvent(QTimerEvent* e);
-	void keyPressEvent(QKeyEvent* e);
+	void paintEvent(QPaintEvent* e) override;
+	void timerEvent(QTimerEvent* e) override;
+	void keyPressEvent(QKeyEvent* e) override;
 
 public:
 	QtDisplay(int width, int height, int scale=8);

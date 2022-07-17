@@ -6,6 +6,8 @@
 
 class Display {
 public:
+	virtual ~Display() = default;
+
 	uint8_t* framebuf;
 
 	virtual void swap_buf() = 0;

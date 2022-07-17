@@ -38,7 +38,7 @@ bne VBLANK_LOOP
 ; Draw border
 sta WSYNC
 sta WSYNC
-lda #0x70
+lda #0x80
 sta PF0
 lda #0xFF
 sta PF1
@@ -60,7 +60,11 @@ bne L1
 lda #0x56
 sta COLUP0
 ldy #0
-lda (SPRITE_ROM),y
+lda #0x00
+sta 0xFE
+lda #0x18
+sta 0xFF
+lda (0xFE),y
 sta WSYNC
 ; 100 / 192 scanlines
 
@@ -68,26 +72,26 @@ sta WSYNC
 sta GRP0
 sta RESP0
 iny
-lda (SPRITE_ROM),y
+lda (0xFE),y
 sta WSYNC
 ; 101 / 192 scanlines
 
 sta GRP0
 iny
-lda (SPRITE_ROM),y
+lda (0xFE),y
 sta WSYNC
 ; 102 / 192 scanlines
 
 sta GRP0
 iny
-lda (SPRITE_ROM),y
+lda (0xFE),y
 sta WSYNC
 ; 103 / 192 scanlines
 
 sta GRP0
-iny
-lda (SPRITE_ROM),y
+lda #0x00
 sta WSYNC
+sta GRP0
 ; 104 / 192 scanlines
 
 ldy #84
@@ -121,7 +125,9 @@ dey
 bne OVERSCAN_LOOP
 jmp FRAME
 
-SPRITE_ROM:
+.org 0x1800
+
+; Happy face sprite
 .byte 0b00100100
 .byte 0b00000000
 .byte 0b01000010

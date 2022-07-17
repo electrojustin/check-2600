@@ -14,6 +14,11 @@ uint8_t reverse_byte(uint8_t b) {
 	return b;
 }
 
+int mod(int a, int b) {
+	int ret = a % b;
+	return ret < 0 ? ret + b : ret;
+}
+
 uint8_t TIA::dma_read_hook(uint16_t addr) {
 	auto read_func = dma_read_table[addr];
 	if (!read_func) {
@@ -37,8 +42,6 @@ void TIA::dma_write_hook(uint16_t addr, uint8_t val) {
 }
 
 void TIA::process_tia_cycle() {
-//	printf("scanline: %d\n", ntsc.gun_y);
-//	dump_regs();
 	if (ntsc.gun_y > 0 && ntsc.gun_y < NTSC::vsync_lines && !vsync_mode) {
 		printf("Error! No vertical sync!\n");
 		panic();
@@ -183,6 +186,47 @@ void TIA::grp1(uint8_t val) {
 	player1_mask = val;
 }
 
+void TIA::hmp0(uint8_t val) {
+	player0_motion = (int8_t)val;
+}
+
+void TIA::hmp1(uint8_t val) {
+	player1_motion = (int8_t)val;
+}
+
+void TIA::hmm0(uint8_t val) {
+	missile0_motion = (int8_t)val;
+}
+
+void TIA::hmm1(uint8_t val) {
+	missile1_motion = (int8_t)val;
+}
+
+void TIA::hmbl(uint8_t val) {
+	ball_motion = (int8_t)val;
+}
+
+void TIA::hmove(uint8_t val) {
+	player0_x += player0_motion;
+	player0_x = mod(player0_x, NTSC::visible_columns);
+	player1_x += player1_motion;
+	player1_x = mod(player1_x, NTSC::visible_columns);
+	missile0_x += missile0_motion;
+	missile0_x = mod(missile0_x, NTSC::visible_columns);
+	missile1_x += missile1_motion;
+	missile1_x = mod(missile1_x, NTSC::visible_columns);
+	ball_x += ball_motion;
+	ball_x = mod(ball_x, NTSC::visible_columns);
+}
+
+void TIA::hmclr(uint8_t val) {
+	player0_motion = 0;
+	player1_motion = 0;
+	missile0_motion = 0;
+	missile1_motion = 0;
+	ball_motion = 0;
+}
+
 
 TIA::TIA(uint16_t start, uint16_t end) {
 	dma_region = std::make_shared<DmaRegion>(start, end, std::bind(&TIA::dma_read_hook, this, _1), std::bind(&TIA::dma_write_hook, this, _1, _2));
@@ -206,6 +250,13 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x14] = std::bind(&TIA::resbl, this, _1);
 	dma_write_table[0x1B] = std::bind(&TIA::grp0, this, _1);
 	dma_write_table[0x1C] = std::bind(&TIA::grp1, this, _1);
+	dma_write_table[0x20] = std::bind(&TIA::hmp0, this, _1);
+	dma_write_table[0x21] = std::bind(&TIA::hmp1, this, _1);
+	dma_write_table[0x22] = std::bind(&TIA::hmm0, this, _1);
+	dma_write_table[0x23] = std::bind(&TIA::hmm1, this, _1);
+	dma_write_table[0x24] = std::bind(&TIA::hmbl, this, _1);
+	dma_write_table[0x2A] = std::bind(&TIA::hmove, this, _1);
+	dma_write_table[0x2B] = std::bind(&TIA::hmclr, this, _1);
 }
 
 void TIA::process_tia() {
