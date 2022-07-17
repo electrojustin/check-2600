@@ -144,17 +144,22 @@ void QtDisplay::convert_framebufs() {
 	}
 }
 
-QtDisplay::QtDisplay(int width, int height) : QWidget(nullptr) {
+QtDisplay::QtDisplay(int width, int height, int scale) : QWidget(nullptr) {
 	this->width = width;
 	this->height = height;
+	this->scale = scale;
 
 	framebuf = (uint8_t*)malloc(width*height);
 	actual_framebuf = (uint8_t*)malloc(4*width*height);
 
-	setFixedSize(width, height);
+	setFixedSize(scale*width, scale*height);
 
 	setWindowTitle("test");
 	show();
+
+	needs_repaint = false;
+
+	startTimer(5);
 }
 
 QtDisplay::~QtDisplay() {
@@ -167,7 +172,7 @@ void QtDisplay::swap_buf() {
 	convert_framebufs();
 	framebuf_mutex.unlock();
 
-	this->repaint();
+	needs_repaint = true;
 }
 
 void QtDisplay::paintEvent(QPaintEvent* e) {
@@ -176,12 +181,17 @@ void QtDisplay::paintEvent(QPaintEvent* e) {
 
 	framebuf_mutex.lock();
 	QImage image(actual_framebuf, width, height, width*4, QImage::Format_RGB32);
-	qp.drawImage(0, 0, image);
+	qp.drawPixmap(0, 0, width*scale, height*scale, QPixmap::fromImage(image));
 	framebuf_mutex.unlock();
+
+	needs_repaint = false;
 }
 
 void QtDisplay::timerEvent(QTimerEvent* e) {
 	Q_UNUSED(e);
+
+	if (needs_repaint)
+		this->repaint();
 }
 
 void QtDisplay::keyPressEvent(QKeyEvent* e) {

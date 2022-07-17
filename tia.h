@@ -17,6 +17,10 @@ class TIA {
 
 	uint8_t background_color = 0;
 
+	uint64_t playfield_mask = 0;
+	uint8_t playfield_color = 0;
+	bool playfield_mirrored = false;
+
 	uint8_t dma_val = 0;
 	std::function<void(uint8_t)> dma_write_request = nullptr;
 
@@ -27,10 +31,17 @@ class TIA {
 	void dma_write_hook(uint16_t addr, uint8_t val);
 	void process_tia_cycle();
 
+	void handle_playfield_mirror();
+
 	void vsync(uint8_t val);
 	void vblank(uint8_t val);
 	void wsync(uint8_t val);
+	void colupf(uint8_t val);
 	void colubk(uint8_t val);
+	void ctrlpf(uint8_t val);
+	void pf0(uint8_t val);
+	void pf1(uint8_t val);
+	void pf2(uint8_t val);
 public:
 	// Ratio of TIA clock to CPU clock
 	const static int tia_cycle_ratio = 3;
