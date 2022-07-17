@@ -28,7 +28,11 @@ class TIA {
 	int player1_x = 0;
 	int player1_motion = 0;
 	uint8_t player0_mask = 0;
+	uint8_t player0_mask_buf = 0;
+	bool player0_mask_delay = false;
 	uint8_t player1_mask = 0;
+	uint8_t player1_mask_buf = 0;
+	bool player1_mask_delay = false;
 	uint8_t player0_color = 0;
 	uint8_t player1_color = 0;
 	int player0_scale = 1;
@@ -49,6 +53,8 @@ class TIA {
 	int ball_motion = 0;
 	int ball_size = 1;
 	bool ball_enable = false;
+	bool ball_enable_buf = false;
+	bool ball_enable_delay = false;
 
 	uint8_t dma_val = 0;
 	std::function<void(uint8_t)> dma_write_request = nullptr;
@@ -108,6 +114,9 @@ class TIA {
 	void hmm0(uint8_t val);
 	void hmm1(uint8_t val);
 	void hmbl(uint8_t val);
+	void vdelp0(uint8_t val);
+	void vdelp1(uint8_t val);
+	void vdelbl(uint8_t val);
 	void resmp0(uint8_t val);
 	void resmp1(uint8_t val);
 	void hmove(uint8_t val);

@@ -295,11 +295,28 @@ void TIA::resbl(uint8_t val) {
 }
 
 void TIA::grp0(uint8_t val) {
-	player0_mask = val;
+	if (!player0_mask_delay) {
+		player0_mask = val;
+	} else {
+		player0_mask_buf = val;
+	}
+
+	if (player1_mask_delay)
+		player1_mask = player1_mask_buf;
 }
 
 void TIA::grp1(uint8_t val) {
-	player1_mask = val;
+	if (!player1_mask_delay) {
+		player1_mask = val;
+	} else {
+		player1_mask_buf = val;
+	}
+
+	if (player0_mask_delay)
+		player0_mask = player0_mask_buf;
+
+	if (ball_enable_delay)
+		ball_enable = ball_enable_buf;
 }
 
 void TIA::enam0(uint8_t val) {
@@ -311,7 +328,11 @@ void TIA::enam1(uint8_t val) {
 }
 
 void TIA::enabl(uint8_t val) {
-	ball_enable = val & 0x02;
+	if (!ball_enable_delay) {
+		ball_enable = val & 0x02;
+	} else {
+		ball_enable_buf = val & 0x02;
+	}
 }
 
 void TIA::hmp0(uint8_t val) {
@@ -332,6 +353,18 @@ void TIA::hmm1(uint8_t val) {
 
 void TIA::hmbl(uint8_t val) {
 	ball_motion = (int8_t)val;
+}
+
+void TIA::vdelp0(uint8_t val) {
+	player0_mask_delay = val & 0x02;
+}
+
+void TIA::vdelp1(uint8_t val) {
+	player1_mask_delay = val & 0x02;
+}
+
+void TIA::vdelbl(uint8_t val) {
+	ball_enable_delay = val & 0x02;
 }
 
 void TIA::handle_resmp(int player_scale, int player_x, int& missile_x) {
@@ -414,6 +447,9 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x22] = std::bind(&TIA::hmm0, this, _1);
 	dma_write_table[0x23] = std::bind(&TIA::hmm1, this, _1);
 	dma_write_table[0x24] = std::bind(&TIA::hmbl, this, _1);
+	dma_write_table[0x25] = std::bind(&TIA::vdelp0, this, _1);
+	dma_write_table[0x26] = std::bind(&TIA::vdelp1, this, _1);
+	dma_write_table[0x27] = std::bind(&TIA::vdelbl, this, _1);
 	dma_write_table[0x28] = std::bind(&TIA::resmp0, this, _1);
 	dma_write_table[0x29] = std::bind(&TIA::resmp1, this, _1);
 	dma_write_table[0x2A] = std::bind(&TIA::hmove, this, _1);
