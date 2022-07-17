@@ -46,7 +46,10 @@ void _asl(std::shared_ptr<Operand> operand) {
 
 void _bcc(std::shared_ptr<Operand> operand) {
 	if (!get_carry()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -55,7 +58,10 @@ void _bcc(std::shared_ptr<Operand> operand) {
 
 void _bcs(std::shared_ptr<Operand> operand) {
 	if (get_carry()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -64,7 +70,10 @@ void _bcs(std::shared_ptr<Operand> operand) {
 
 void _beq(std::shared_ptr<Operand> operand) {
 	if (get_zero()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -79,7 +88,10 @@ void _bit(std::shared_ptr<Operand> operand) {
 
 void _bmi(std::shared_ptr<Operand> operand) {
 	if (get_negative()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -88,7 +100,10 @@ void _bmi(std::shared_ptr<Operand> operand) {
 
 void _bne(std::shared_ptr<Operand> operand) {
 	if (!get_zero()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -97,7 +112,10 @@ void _bne(std::shared_ptr<Operand> operand) {
 
 void _bpl(std::shared_ptr<Operand> operand) {
 	if (!get_negative()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -124,7 +142,10 @@ void _brk(std::shared_ptr<Operand> operand) {
 
 void _bvc(std::shared_ptr<Operand> operand) {
 	if (!get_overflow()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 
@@ -133,7 +154,10 @@ void _bvc(std::shared_ptr<Operand> operand) {
 
 void _bvs(std::shared_ptr<Operand> operand) {
 	if (get_overflow()) {
-		program_counter = operand->get_val() - operand->get_insn_len();
+		uint16_t new_program_counter = operand->get_val() - operand->get_insn_len();
+		if ((new_program_counter & (~(PAGE_SIZE-1))) != (program_counter & (~(PAGE_SIZE-1))))
+			cycle_num++;
+		program_counter = new_program_counter;
 		cycle_num++;
 	}
 

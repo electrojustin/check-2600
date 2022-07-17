@@ -6,6 +6,8 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#define PAGE_SIZE 0x100
+
 enum MemoryType {
 	ROM,
 	RAM,

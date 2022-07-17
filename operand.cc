@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 
-// TODO: Calculate penalties incurred by accessing out-of-page addresses.
 class Relative : public Operand {
 	int8_t offset;
 
@@ -88,7 +87,11 @@ public:
 	}
 
 	int get_cycle_penalty() override {
-		return extra_cycle ? 6 : 5;
+		if (extra_cycle || ((uint16_t)zero_page_addr) + index_y > PAGE_SIZE) {
+			return 6;
+		} else {
+			return 5;
+		}
 	}
 };
 
@@ -205,7 +208,13 @@ public:
 	}
 
 	int get_cycle_penalty() override {
-		return extra_cycle ? 5 : 4;
+		uint16_t base_page = addr & (~(PAGE_SIZE-1));
+		uint16_t indexed_page = (addr + index) & (~(PAGE_SIZE-1));
+		if (extra_cycle || base_page != indexed_page) {
+			return 5;
+		} else {
+			return 4;
+		}
 	}
 };
 
