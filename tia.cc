@@ -41,6 +41,22 @@ void TIA::dma_write_hook(uint16_t addr, uint8_t val) {
 	dma_val = val;
 }
 
+bool TIA::should_draw_playfield(int visible_x) {
+	return visible_x >= 0 && ((playfield_mask >> (visible_x / 4)) & 0x01);
+}
+
+void TIA::draw_playfield(int visible_x) {
+	if (!playfield_score_mode) {
+		ntsc.write_pixel(playfield_color);
+	} else {
+		if (visible_x < NTSC::visible_columns/2) {
+			ntsc.write_pixel(player0_color);
+		} else {
+			ntsc.write_pixel(player1_color);
+		}
+	}
+}
+
 void TIA::process_tia_cycle() {
 	if (ntsc.gun_y > 0 && ntsc.gun_y < NTSC::vsync_lines && !vsync_mode) {
 		printf("Error! No vertical sync!\n");
@@ -52,15 +68,16 @@ void TIA::process_tia_cycle() {
 
 	if (!vblank_mode) {
 		int visible_x = ntsc.gun_x - NTSC::hblank;
-		if (visible_x >= player0_x && visible_x < player0_x + player_size &&
+		if (playfield_priority && should_draw_playfield(visible_x)) {
+			draw_playfield(visible_x);
+		} else if (visible_x >= player0_x && visible_x < player0_x + player_size &&
 		    ((player0_mask >> (visible_x - player0_x)) & 0x01)) {
 			ntsc.write_pixel(player0_color);
 		} else if (visible_x >= player1_x && visible_x < player1_x + player_size &&
 		    ((player1_mask >> (visible_x - player1_x)) & 0x01)) {
 			ntsc.write_pixel(player1_color);
-		} else if (visible_x >= 0 && ((playfield_mask >> (visible_x / 4)) & 0x01)) {
-			// TODO: Handle score mode
-			ntsc.write_pixel(playfield_color);
+		} else if (!playfield_priority && should_draw_playfield(visible_x)) {
+			draw_playfield(visible_x);
 		} else {
 			ntsc.write_pixel(background_color);
 		}
@@ -136,8 +153,12 @@ void TIA::colubk(uint8_t val) {
 
 void TIA::ctrlpf(uint8_t val) {
 	playfield_mirrored = val & 0x01;
+	playfield_score_mode = val & 0x02;
+	playfield_priority = val & 0x04;
 
 	handle_playfield_mirror();
+
+	ball_size = 1 << ((playfield_priority >> 4) & 0x03);
 }
 
 void TIA::pf0(uint8_t val) {
