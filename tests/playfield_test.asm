@@ -1,6 +1,6 @@
 VSYNC = 0x00
 VBLANK = 0x01
-WSYNC = 0x02 
+WSYNC = 0x02
 COLUPF = 0x08
 COLUBK = 0x09
 CTRLPF = 0x0A
@@ -20,8 +20,10 @@ lda #0x66
 sta PF1
 lda #0x99
 sta PF2
-lda #0x01
+lda #0x00
 sta CTRLPF
+lda #0x37
+sta COLUPF
 sta WSYNC
 sta WSYNC
 sta WSYNC
@@ -33,13 +35,22 @@ sta WSYNC
 dey
 bne VBLANK_LOOP
 ldx #0
-ldy #192
-PICTURE_LOOP:
+ldy #100
+PIC:
 inx
 stx COLUBK
 sta WSYNC
 dey
-bne PICTURE_LOOP
+bne PIC
+lda #0x01
+sta CTRLPF
+ldy #92
+PIC2:
+inx
+stx COLUBK
+sta WSYNC
+dey
+bne PIC2
 lda #0x42
 sta VBLANK
 ldy #30
