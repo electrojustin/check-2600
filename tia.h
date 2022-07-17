@@ -65,6 +65,9 @@ class TIA {
 	bool should_draw_playfield(int visible_x);
 	void draw_playfield(int visible_x);
 
+	bool should_draw_ball(int visible_x);
+	void draw_ball();
+
 	bool should_draw_player(int visible_x, int player_x, uint8_t player_mask, int duplicate_mask, int scale);
 	void draw_player(uint8_t player_color);
 
@@ -75,6 +78,7 @@ class TIA {
 	void reset_sprite_position(int& sprite, int hblank_fudge);
 
 	void handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size); 
+	void handle_resmp(int player_scale, int player_x, int& missile_x);
 
 	void vsync(uint8_t val);
 	void vblank(uint8_t val);
@@ -98,11 +102,14 @@ class TIA {
 	void grp1(uint8_t val);
 	void enam0(uint8_t val);
 	void enam1(uint8_t val);
+	void enabl(uint8_t val);
 	void hmp0(uint8_t val);
 	void hmp1(uint8_t val);
 	void hmm0(uint8_t val);
 	void hmm1(uint8_t val);
 	void hmbl(uint8_t val);
+	void resmp0(uint8_t val);
+	void resmp1(uint8_t val);
 	void hmove(uint8_t val);
 	void hmclr(uint8_t val);
 public:

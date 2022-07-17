@@ -57,6 +57,16 @@ void TIA::draw_playfield(int visible_x) {
 	}
 }
 
+bool TIA::should_draw_ball(int visible_x) {
+	return ball_enable &&
+	       visible_x >= ball_x &&
+	       (visible_x - ball_x) < ball_size;
+}
+
+void TIA::draw_ball() {
+	ntsc.write_pixel(playfield_color);
+}
+
 bool TIA::should_draw_player(int visible_x, int player_x, uint8_t player_mask, int duplicate_mask, int scale) {
 	if (!duplicate_mask) {
 		return visible_x >= player_x &&
@@ -96,17 +106,21 @@ void TIA::process_tia_cycle() {
 		int visible_x = ntsc.gun_x - NTSC::hblank;
 		if (playfield_priority && should_draw_playfield(visible_x)) {
 			draw_playfield(visible_x);
+		} else if (playfield_priority && should_draw_ball(visible_x)) {
+			draw_ball();
 		} else if (should_draw_missile(visible_x, missile0_x, missile0_size, missile0_enable)) {
 			draw_missile(player0_color);
-		} else if (should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable)) {
-			draw_missile(player1_color);
 		} else if (should_draw_player(visible_x, player0_x, player0_mask, player0_duplicate_mask, player0_scale)) {
 			draw_player(player0_color);
 		} else if (should_draw_player(visible_x, player1_x, player1_mask, player1_duplicate_mask, player1_scale)) {
 			draw_player(player1_color);
+		} else if (should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable)) {
+			draw_missile(player1_color);
 		} else if (!playfield_priority && should_draw_playfield(visible_x)) {
 			draw_playfield(visible_x);
-		} else {
+		} else if (!playfield_priority && should_draw_ball(visible_x)) {
+			draw_ball();
+		}else {
 			ntsc.write_pixel(background_color);
 		}
 	} else {
@@ -296,6 +310,10 @@ void TIA::enam1(uint8_t val) {
 	missile1_enable = val & 0x02;
 }
 
+void TIA::enabl(uint8_t val) {
+	ball_enable = val & 0x02;
+}
+
 void TIA::hmp0(uint8_t val) {
 	player0_motion = (int8_t)val;
 }
@@ -314,6 +332,32 @@ void TIA::hmm1(uint8_t val) {
 
 void TIA::hmbl(uint8_t val) {
 	ball_motion = (int8_t)val;
+}
+
+void TIA::handle_resmp(int player_scale, int player_x, int& missile_x) {
+	switch (player_scale) {
+		case 1:
+			missile_x = player_x + 3;
+			break;
+		case 2:
+			missile_x = player_x + 6;
+			break;
+		case 4:
+			missile_x = player_x + 10;
+			break;
+		default:
+			printf("Error! Invalid player scale for RESMP call!\n");
+			panic();
+			break;
+	}
+}
+
+void TIA::resmp0(uint8_t val) {
+	handle_resmp(player0_scale, player0_x, missile0_x);
+}
+
+void TIA::resmp1(uint8_t val) {
+	handle_resmp(player1_scale, player1_x, missile1_x);
 }
 
 void TIA::hmove(uint8_t val) {
@@ -364,11 +408,14 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x1C] = std::bind(&TIA::grp1, this, _1);
 	dma_write_table[0x1D] = std::bind(&TIA::enam0, this, _1);
 	dma_write_table[0x1E] = std::bind(&TIA::enam1, this, _1);
+	dma_write_table[0x1F] = std::bind(&TIA::enabl, this, _1);
 	dma_write_table[0x20] = std::bind(&TIA::hmp0, this, _1);
 	dma_write_table[0x21] = std::bind(&TIA::hmp1, this, _1);
 	dma_write_table[0x22] = std::bind(&TIA::hmm0, this, _1);
 	dma_write_table[0x23] = std::bind(&TIA::hmm1, this, _1);
 	dma_write_table[0x24] = std::bind(&TIA::hmbl, this, _1);
+	dma_write_table[0x28] = std::bind(&TIA::resmp0, this, _1);
+	dma_write_table[0x29] = std::bind(&TIA::resmp1, this, _1);
 	dma_write_table[0x2A] = std::bind(&TIA::hmove, this, _1);
 	dma_write_table[0x2B] = std::bind(&TIA::hmclr, this, _1);
 }
