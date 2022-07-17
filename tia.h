@@ -31,15 +31,24 @@ class TIA {
 	uint8_t player1_mask = 0;
 	uint8_t player0_color = 0;
 	uint8_t player1_color = 0;
+	int player0_scale = 1;
+	int player1_scale = 1;
+	int player0_duplicate_mask = 0;
+	int player1_duplicate_mask = 0;
 
 	int missile0_x = 0;
 	int missile0_motion = 0;
 	int missile1_x = 0;
 	int missile1_motion = 0;
+	int missile0_size = 1;
+	int missile1_size = 1;
+	bool missile0_enable = false;
+	bool missile1_enable = false;
 
 	int ball_x = 0;
 	int ball_motion = 0;
 	int ball_size = 1;
+	bool ball_enable = false;
 
 	uint8_t dma_val = 0;
 	std::function<void(uint8_t)> dma_write_request = nullptr;
@@ -52,15 +61,26 @@ class TIA {
 	void process_tia_cycle();
 
 	void handle_playfield_mirror();
+
 	bool should_draw_playfield(int visible_x);
 	void draw_playfield(int visible_x);
+
+	bool should_draw_player(int visible_x, int player_x, uint8_t player_mask, int duplicate_mask, int scale);
+	void draw_player(uint8_t player_color);
+
+	bool should_draw_missile(int visible_x, int missile_x, int missile_size, bool missile_enabled);
+	void draw_missile(uint8_t missile_color);
 
 	// If a sprite position is reset during the horizontal blanking period, the sprite will appear at the far left side of the screen, plus a few pixels. hblank_fuzz is that "few pixel fudge factor".
 	void reset_sprite_position(int& sprite, int hblank_fudge);
 
+	void handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size); 
+
 	void vsync(uint8_t val);
 	void vblank(uint8_t val);
 	void wsync(uint8_t val);
+	void nusiz0(uint8_t val);
+	void nusiz1(uint8_t val);
 	void colup0(uint8_t val);
 	void colup1(uint8_t val);
 	void colupf(uint8_t val);
@@ -76,6 +96,8 @@ class TIA {
 	void resbl(uint8_t val);
 	void grp0(uint8_t val);
 	void grp1(uint8_t val);
+	void enam0(uint8_t val);
+	void enam1(uint8_t val);
 	void hmp0(uint8_t val);
 	void hmp1(uint8_t val);
 	void hmm0(uint8_t val);

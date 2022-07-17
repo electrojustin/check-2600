@@ -57,6 +57,32 @@ void TIA::draw_playfield(int visible_x) {
 	}
 }
 
+bool TIA::should_draw_player(int visible_x, int player_x, uint8_t player_mask, int duplicate_mask, int scale) {
+	if (!duplicate_mask) {
+		return visible_x >= player_x &&
+		       visible_x < player_x + player_size*scale &&
+		       ((player_mask >> ((visible_x - player_x)/scale)) & 0x01);
+	} else {
+		return visible_x >= player_x &&
+		       ((duplicate_mask >> ((visible_x - player_x)/player_size)) & 0x01) &&
+		       ((player_mask >> ((visible_x - player_x)%player_size)) & 0x01);
+	}
+}
+
+void TIA::draw_player(uint8_t player_color) {
+	ntsc.write_pixel(player_color);
+}
+
+bool TIA::should_draw_missile(int visible_x, int missile_x, int missile_size, bool missile_enabled) {
+	return missile_enabled &&
+	       visible_x >= missile_x &&
+	       (visible_x - missile_x) < missile_size;
+}
+
+void TIA::draw_missile(uint8_t missile_color) {
+	ntsc.write_pixel(missile_color);
+}
+
 void TIA::process_tia_cycle() {
 	if (ntsc.gun_y > 0 && ntsc.gun_y < NTSC::vsync_lines && !vsync_mode) {
 		printf("Error! No vertical sync!\n");
@@ -70,12 +96,14 @@ void TIA::process_tia_cycle() {
 		int visible_x = ntsc.gun_x - NTSC::hblank;
 		if (playfield_priority && should_draw_playfield(visible_x)) {
 			draw_playfield(visible_x);
-		} else if (visible_x >= player0_x && visible_x < player0_x + player_size &&
-		    ((player0_mask >> (visible_x - player0_x)) & 0x01)) {
-			ntsc.write_pixel(player0_color);
-		} else if (visible_x >= player1_x && visible_x < player1_x + player_size &&
-		    ((player1_mask >> (visible_x - player1_x)) & 0x01)) {
-			ntsc.write_pixel(player1_color);
+		} else if (should_draw_missile(visible_x, missile0_x, missile0_size, missile0_enable)) {
+			draw_missile(player0_color);
+		} else if (should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable)) {
+			draw_missile(player1_color);
+		} else if (should_draw_player(visible_x, player0_x, player0_mask, player0_duplicate_mask, player0_scale)) {
+			draw_player(player0_color);
+		} else if (should_draw_player(visible_x, player1_x, player1_mask, player1_duplicate_mask, player1_scale)) {
+			draw_player(player1_color);
 		} else if (!playfield_priority && should_draw_playfield(visible_x)) {
 			draw_playfield(visible_x);
 		} else {
@@ -133,6 +161,59 @@ void TIA::vblank(uint8_t val) {
 // Sleep the CPU until hblank is (almost) over
 void TIA::wsync(uint8_t val) {
 	cycle_num += cpu_scanline_cycles - (cycle_num % cpu_scanline_cycles);
+}
+
+void TIA::handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size) {
+	missile_size = 1 << ((val >> 4) & 0x03);
+
+	int player_settings = val & 0x07;
+
+	switch (player_settings) {
+		case 0:
+			dup_mask = 0;
+			scale = 1;
+			break;
+		case 1:
+			dup_mask = 0b101;
+			scale = 1;
+			break;
+		case 2:
+			dup_mask = 0b10001;
+			scale = 1;
+			break;
+		case 3:
+			dup_mask = 0b10101;
+			scale = 1;
+			break;
+		case 4:
+			dup_mask = 0b100000001;
+			scale = 1;
+			break;
+		case 5:
+			dup_mask = 0;
+			scale = 2;
+			break;
+		case 6:
+			dup_mask = 0b100010001;
+			scale = 1;
+			break;
+		case 7:
+			dup_mask = 0;
+			scale = 4;
+			break;
+		default:
+			printf("Invalid player setting\n");
+			panic();
+			break;
+	}
+}
+
+void TIA::nusiz0(uint8_t val) {
+	handle_nusiz(val, player0_duplicate_mask, player0_scale, missile0_size);
+}
+
+void TIA::nusiz1(uint8_t val) {
+	handle_nusiz(val, player1_duplicate_mask, player1_scale, missile1_size);
 }
 
 void TIA::colup0(uint8_t val) {
@@ -207,6 +288,14 @@ void TIA::grp1(uint8_t val) {
 	player1_mask = val;
 }
 
+void TIA::enam0(uint8_t val) {
+	missile0_enable = val & 0x02;
+}
+
+void TIA::enam1(uint8_t val) {
+	missile1_enable = val & 0x02;
+}
+
 void TIA::hmp0(uint8_t val) {
 	player0_motion = (int8_t)val;
 }
@@ -256,6 +345,8 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x00] = std::bind(&TIA::vsync, this, _1);
 	dma_write_table[0x01] = std::bind(&TIA::vblank, this, _1);
 	dma_write_table[0x02] = std::bind(&TIA::wsync, this, _1);
+	dma_write_table[0x04] = std::bind(&TIA::nusiz0, this, _1);
+	dma_write_table[0x05] = std::bind(&TIA::nusiz1, this, _1);
 	dma_write_table[0x06] = std::bind(&TIA::colup0, this, _1);
 	dma_write_table[0x07] = std::bind(&TIA::colup1, this, _1);
 	dma_write_table[0x08] = std::bind(&TIA::colupf, this, _1);
@@ -271,6 +362,8 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x14] = std::bind(&TIA::resbl, this, _1);
 	dma_write_table[0x1B] = std::bind(&TIA::grp0, this, _1);
 	dma_write_table[0x1C] = std::bind(&TIA::grp1, this, _1);
+	dma_write_table[0x1D] = std::bind(&TIA::enam0, this, _1);
+	dma_write_table[0x1E] = std::bind(&TIA::enam1, this, _1);
 	dma_write_table[0x20] = std::bind(&TIA::hmp0, this, _1);
 	dma_write_table[0x21] = std::bind(&TIA::hmp1, this, _1);
 	dma_write_table[0x22] = std::bind(&TIA::hmm0, this, _1);
