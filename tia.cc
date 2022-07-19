@@ -256,6 +256,18 @@ void TIA::ctrlpf(uint8_t val) {
 	ball_size = 1 << ((playfield_priority >> 4) & 0x03);
 }
 
+void TIA::refp0(uint8_t val) {
+	bool new_p0_reflect = val & 0x4;
+	if (new_p0_reflect != player0_reflect)
+		player0_mask = reverse_byte(player0_mask);
+}
+
+void TIA::refp1(uint8_t val) {
+	bool new_p1_reflect = val & 0x4;
+	if (new_p1_reflect != player1_reflect)
+		player1_mask = reverse_byte(player1_mask);
+}
+
 void TIA::pf0(uint8_t val) {
 	playfield_mask &= ~0x0F;
 	playfield_mask |= val >> 4;
@@ -429,6 +441,8 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x08] = std::bind(&TIA::colupf, this, _1);
 	dma_write_table[0x09] = std::bind(&TIA::colubk, this, _1);
 	dma_write_table[0x0A] = std::bind(&TIA::ctrlpf, this, _1);
+	dma_write_table[0x0B] = std::bind(&TIA::refp0, this, _1);
+	dma_write_table[0x0C] = std::bind(&TIA::refp1, this, _1);
 	dma_write_table[0x0D] = std::bind(&TIA::pf0, this, _1);
 	dma_write_table[0x0E] = std::bind(&TIA::pf1, this, _1);
 	dma_write_table[0x0F] = std::bind(&TIA::pf2, this, _1);

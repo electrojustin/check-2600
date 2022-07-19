@@ -39,6 +39,8 @@ class TIA {
 	int player1_scale = 1;
 	int player0_duplicate_mask = 0;
 	int player1_duplicate_mask = 0;
+	bool player0_reflect = false;
+	bool player1_reflect = false;
 
 	int missile0_x = 0;
 	int missile0_motion = 0;
@@ -96,6 +98,8 @@ class TIA {
 	void colupf(uint8_t val);
 	void colubk(uint8_t val);
 	void ctrlpf(uint8_t val);
+	void refp0(uint8_t val);
+	void refp1(uint8_t val);
 	void pf0(uint8_t val);
 	void pf1(uint8_t val);
 	void pf2(uint8_t val);
