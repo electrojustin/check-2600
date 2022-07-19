@@ -28,16 +28,15 @@ tia.o: tia.cc tia.h ntsc.h registers.h memory.h
 atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h
 	${CC} ${INCLUDE} -c atari.cc
 tests: tests/fib.atari tests/scanline_test.atari tests/playfield_test.atari tests/player_test.atari tests/nusiz_test.atari
-tests/fib.atari:
+tests/fib.atari: tests/fib.asm
 	${ASM} -o tests/fib.atari tests/fib.asm
-tests/scanline_test.atari:
+tests/scanline_test.atari: tests/scanline_test.asm
 	${ASM} -o tests/scanline_test.atari tests/scanline_test.asm
-tests/playfield_test.atari:
+tests/playfield_test.atari: tests/playfield_test.asm
 	${ASM} -o tests/playfield_test.atari tests/playfield_test.asm
-tests/player_test.atari:
+tests/player_test.atari: tests/player_test.asm
 	${ASM} -o tests/player_test.atari tests/player_test.asm
-tests/nusiz_test.atari:
+tests/nusiz_test.atari: tests/nusiz_test.asm
 	${ASM} -o tests/nusiz_test.atari tests/nusiz_test.asm
 clean:
-	rm *.o
-	tests/*.atari
+	rm *.o ; rm tests/*.atari

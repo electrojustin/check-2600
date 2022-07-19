@@ -8,8 +8,8 @@
 #define TIA_END 0x007F
 #define RAM_START 0x0080
 #define RAM_END 0x00FF
-#define ROM_START 0x1000
-#define ROM_END 0x1FFF
+#define ROM_START 0xF000
+#define ROM_END 0xFFFF
 #define STACK_TOP 0x1FF
 #define STACK_BOTTOM 0x100
 

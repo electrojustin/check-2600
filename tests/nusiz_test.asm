@@ -22,7 +22,10 @@ NUSIZ0 = 0x04
 NUSIZ1 = 0x05
 ENAM0 = 0x1D
 
-*=0x1000
+ROM_START=0xF000
+RESET_VECTOR=0xFFFC
+
+*=ROM_START
 lda #0
 sta 0xF0
 FRAME:
@@ -111,11 +114,11 @@ lda #0xC4
 sta COLUP1
 lda #0x00
 sta 0xFE
-lda #0x18
+lda #0xF8
 sta 0xFF
 lda #0x00
 sta 0xFC
-lda #0x19
+lda #0xF9
 sta 0xFD
 lda #0x33
 sta NUSIZ0
@@ -202,7 +205,7 @@ dey
 bne OVERSCAN_LOOP
 jmp FRAME
 
-*=0x1800
+*=0xF800
 
 ; Happy face sprite
 !byte 0b00100100
@@ -210,9 +213,12 @@ jmp FRAME
 !byte 0b01000010
 !byte 0b00111100
 
-*=0x1900
+*=0xF900
 ; Heart face sprite
 !byte 0b01100110
 !byte 0b01111110
 !byte 0b00111100
 !byte 0b00011000
+
+*=RESET_VECTOR
+!word ROM_START

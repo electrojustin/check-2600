@@ -45,16 +45,13 @@ void load_program_file(const char* filename) {
 	ram = std::make_shared<RamRegion>(RAM_START, RAM_END);
 	rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
 	stack = std::make_shared<StackRegion>(STACK_BOTTOM, STACK_TOP);
-	irq_vector = std::make_shared<RamRegion>(NMI_VECTOR, IRQ_VECTOR+1);
 
 	memory_regions.push_back(ram);
 	memory_regions.push_back(stack);
-	memory_regions.push_back(rom);	
-	memory_regions.push_back(irq_vector);
+	memory_regions.push_back(rom);
 	memory_regions.push_back(tia->get_dma_region());
 
-	irq_vector_addr = IRQ_VECTOR;
-	write_word(IRQ_VECTOR, 0);
+	init_registers(read_word(RESET_VECTOR));
 
 	free(rom_backing);
 }

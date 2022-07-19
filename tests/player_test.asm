@@ -11,7 +11,10 @@ PF2 = 0x0F
 GRP0 = 0x1B
 RESP0 = 0x10
 
-*=0x1000
+ROM_START=0xF000
+RESET_VECTOR=0xFFFC
+
+*=ROM_START
 FRAME:
 lda #0x00
 sta VBLANK
@@ -62,7 +65,7 @@ sta COLUP0
 ldy #0
 lda #0x00
 sta 0xFE
-lda #0x18
+lda #0xF8
 sta 0xFF
 lda (0xFE),y
 sta WSYNC
@@ -143,9 +146,12 @@ dey
 bne OVERSCAN_LOOP
 jmp FRAME
 
-*=0x1800
+*=0xF800
 ; Happy face sprite
 !byte 0b00100100
 !byte 0b00000000
 !byte 0b01000010
 !byte 0b00111100
+
+*=RESET_VECTOR
+!word ROM_START
