@@ -27,16 +27,16 @@ tia.o: tia.cc tia.h ntsc.h registers.h memory.h
 	${CC} ${INCLUDE} -c tia.cc
 atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h
 	${CC} ${INCLUDE} -c atari.cc
-tests: tests/fib.atari tests/scanline_test.atari tests/playfield_test.atari tests/player_test.atari tests/nusiz_test.atari
-tests/fib.atari: tests/fib.asm
-	${ASM} -o tests/fib.atari tests/fib.asm
-tests/scanline_test.atari: tests/scanline_test.asm
-	${ASM} -o tests/scanline_test.atari tests/scanline_test.asm
-tests/playfield_test.atari: tests/playfield_test.asm
-	${ASM} -o tests/playfield_test.atari tests/playfield_test.asm
-tests/player_test.atari: tests/player_test.asm
-	${ASM} -o tests/player_test.atari tests/player_test.asm
-tests/nusiz_test.atari: tests/nusiz_test.asm
-	${ASM} -o tests/nusiz_test.atari tests/nusiz_test.asm
+tests: tests/fib.bin tests/scanline_test.bin tests/playfield_test.bin tests/player_test.bin tests/nusiz_test.bin
+tests/fib.bin: tests/fib.asm
+	${ASM} -o tests/fib.bin tests/fib.asm
+tests/scanline_test.bin: tests/scanline_test.asm
+	${ASM} -o tests/scanline_test.bin tests/scanline_test.asm
+tests/playfield_test.bin: tests/playfield_test.asm
+	${ASM} -o tests/playfield_test.bin tests/playfield_test.asm
+tests/player_test.bin: tests/player_test.asm
+	${ASM} -o tests/player_test.bin tests/player_test.asm
+tests/nusiz_test.bin: tests/nusiz_test.asm
+	${ASM} -o tests/nusiz_test.bin tests/nusiz_test.asm
 clean:
-	rm *.o ; rm tests/*.atari
+	rm *.o ; rm tests/*.bin

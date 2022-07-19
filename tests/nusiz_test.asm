@@ -124,7 +124,7 @@ lda #0x33
 sta NUSIZ0
 lda #0x05
 sta NUSIZ1
-lda #1
+lda #0x10
 sta HMP0
 sta HMP1
 sta HMM0

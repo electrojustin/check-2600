@@ -83,10 +83,18 @@ void TIA::draw_player(uint8_t player_color) {
 	ntsc.write_pixel(player_color);
 }
 
-bool TIA::should_draw_missile(int visible_x, int missile_x, int missile_size, bool missile_enabled) {
-	return missile_enabled &&
-	       visible_x >= missile_x &&
-	       (visible_x - missile_x) < missile_size;
+bool TIA::should_draw_missile(int visible_x, int missile_x, int missile_size, bool missile_enabled, int duplicate_mask) {
+	if (!missile_enabled)
+		return false;
+
+	if (!duplicate_mask) {
+		return visible_x >= missile_x &&
+		       (visible_x - missile_x) < missile_size;
+	} else {
+		return visible_x >= missile_x &&
+		       ((duplicate_mask >> (visible_x - missile_x)/player_size) & 0x01) &&
+		       ((visible_x - missile_x) % player_size) < missile_size;
+	}
 }
 
 void TIA::draw_missile(uint8_t missile_color) {
@@ -108,13 +116,13 @@ void TIA::process_tia_cycle() {
 			draw_playfield(visible_x);
 		} else if (playfield_priority && should_draw_ball(visible_x)) {
 			draw_ball();
-		} else if (should_draw_missile(visible_x, missile0_x, missile0_size, missile0_enable)) {
+		} else if (should_draw_missile(visible_x, missile0_x, missile0_size, missile0_enable, player0_duplicate_mask)) {
 			draw_missile(player0_color);
 		} else if (should_draw_player(visible_x, player0_x, player0_mask, player0_duplicate_mask, player0_scale)) {
 			draw_player(player0_color);
 		} else if (should_draw_player(visible_x, player1_x, player1_mask, player1_duplicate_mask, player1_scale)) {
 			draw_player(player1_color);
-		} else if (should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable)) {
+		} else if (should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable, player1_duplicate_mask)) {
 			draw_missile(player1_color);
 		} else if (!playfield_priority && should_draw_playfield(visible_x)) {
 			draw_playfield(visible_x);
@@ -147,10 +155,13 @@ void TIA::handle_playfield_mirror() {
 	}
 }
 
-void TIA::reset_sprite_position(int& sprite, int hblank_fudge) {
+void TIA::reset_sprite_position(int& sprite, int hblank_fudge, int fudge) {
 	sprite = ((cycle_num % cpu_scanline_cycles) * tia_cycle_ratio) - NTSC::hblank;
-	if (sprite < 0)
+	if (sprite < 0) {
 		sprite = hblank_fudge;
+	} else {
+		sprite += fudge;
+	}
 }
 
 void TIA::vsync(uint8_t val) {
@@ -287,23 +298,23 @@ void TIA::pf2(uint8_t val) {
 }
 
 void TIA::resp0(uint8_t val) {
-	reset_sprite_position(player0_x, 3);
+	reset_sprite_position(player0_x, 3, resp_player_offset);
 }
 
 void TIA::resp1(uint8_t val) {
-	reset_sprite_position(player1_x, 3);
+	reset_sprite_position(player1_x, 3, resp_player_offset);
 }
 
 void TIA::resm0(uint8_t val) {
-	reset_sprite_position(missile0_x, 2);
+	reset_sprite_position(missile0_x, 2, resp_missile_ball_offset);
 }
 
 void TIA::resm1(uint8_t val) {
-	reset_sprite_position(missile1_x, 2);
+	reset_sprite_position(missile1_x, 2, resp_missile_ball_offset);
 }
 
 void TIA::resbl(uint8_t val) {
-	reset_sprite_position(ball_x, 2);
+	reset_sprite_position(ball_x, 2, resp_missile_ball_offset);
 }
 
 void TIA::grp0(uint8_t val) {
@@ -348,23 +359,23 @@ void TIA::enabl(uint8_t val) {
 }
 
 void TIA::hmp0(uint8_t val) {
-	player0_motion = (int8_t)val;
+	player0_motion = (-((int8_t)val)) / 16;
 }
 
 void TIA::hmp1(uint8_t val) {
-	player1_motion = (int8_t)val;
+	player1_motion = (-((int8_t)val)) / 16;
 }
 
 void TIA::hmm0(uint8_t val) {
-	missile0_motion = (int8_t)val;
+	missile0_motion = (-((int8_t)val)) / 16;
 }
 
 void TIA::hmm1(uint8_t val) {
-	missile1_motion = (int8_t)val;
+	missile1_motion = (-((int8_t)val)) / 16;
 }
 
 void TIA::hmbl(uint8_t val) {
-	ball_motion = (int8_t)val;
+	ball_motion = (-((int8_t)val)) / 16;
 }
 
 void TIA::vdelp0(uint8_t val) {

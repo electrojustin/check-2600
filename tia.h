@@ -79,11 +79,11 @@ class TIA {
 	bool should_draw_player(int visible_x, int player_x, uint8_t player_mask, int duplicate_mask, int scale);
 	void draw_player(uint8_t player_color);
 
-	bool should_draw_missile(int visible_x, int missile_x, int missile_size, bool missile_enabled);
+	bool should_draw_missile(int visible_x, int missile_x, int missile_size, bool missile_enabled, int duplicate_mask);
 	void draw_missile(uint8_t missile_color);
 
 	// If a sprite position is reset during the horizontal blanking period, the sprite will appear at the far left side of the screen, plus a few pixels. hblank_fuzz is that "few pixel fudge factor".
-	void reset_sprite_position(int& sprite, int hblank_fudge);
+	void reset_sprite_position(int& sprite, int hblank_fudge, int fudge);
 
 	void handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size); 
 	void handle_resmp(int player_scale, int player_x, int& missile_x);
@@ -132,6 +132,9 @@ public:
 	const static int cpu_scanline_cycles = NTSC::columns/tia_cycle_ratio;
 	// Player sprite size
 	const static int player_size = 8;
+	// RESXX offsets
+	const static int resp_player_offset = 5;
+	const static int resp_missile_ball_offset = 4;
 
 	TIA(uint16_t start, uint16_t end);
 
