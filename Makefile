@@ -1,7 +1,8 @@
 CC=clang -g -pthread
-#INCLUDE=-I/usr/include/qt -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/qt/QtWidgets
-INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets
+INCLUDE=-I/usr/include/qt -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/qt/QtWidgets
+#INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets
 LINK=-lstdc++ -L/usr/lib/x86_64-linux-gnu/ -lQt5Core -lQt5Gui -lQt5Widgets
+ASM=acme
 atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o
 	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o -o atari2600
 main.o: main.cc atari.h
@@ -26,5 +27,17 @@ tia.o: tia.cc tia.h ntsc.h registers.h memory.h
 	${CC} ${INCLUDE} -c tia.cc
 atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h
 	${CC} ${INCLUDE} -c atari.cc
+tests: tests/fib.atari tests/scanline_test.atari tests/playfield_test.atari tests/player_test.atari tests/nusiz_test.atari
+tests/fib.atari:
+	${ASM} -o tests/fib.atari tests/fib.asm
+tests/scanline_test.atari:
+	${ASM} -o tests/scanline_test.atari tests/scanline_test.asm
+tests/playfield_test.atari:
+	${ASM} -o tests/playfield_test.atari tests/playfield_test.asm
+tests/player_test.atari:
+	${ASM} -o tests/player_test.atari tests/player_test.asm
+tests/nusiz_test.atari:
+	${ASM} -o tests/nusiz_test.atari tests/nusiz_test.asm
 clean:
 	rm *.o
+	tests/*.atari

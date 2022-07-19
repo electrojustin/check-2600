@@ -11,7 +11,7 @@ PF2 = 0x0F
 GRP0 = 0x1B
 RESP0 = 0x10
 
-.org 0x1000
+*=0x1000
 FRAME:
 lda #0x00
 sta VBLANK
@@ -68,7 +68,25 @@ lda (0xFE),y
 sta WSYNC
 ; 100 / 192 scanlines
 
-.REPEAT 18 nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+
 sta GRP0
 sta RESP0
 iny
@@ -125,10 +143,9 @@ dey
 bne OVERSCAN_LOOP
 jmp FRAME
 
-.org 0x1800
-
+*=0x1800
 ; Happy face sprite
-.byte 0b00100100
-.byte 0b00000000
-.byte 0b01000010
-.byte 0b00111100
+!byte 0b00100100
+!byte 0b00000000
+!byte 0b01000010
+!byte 0b00111100

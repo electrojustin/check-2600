@@ -22,7 +22,7 @@ NUSIZ0 = 0x04
 NUSIZ1 = 0x05
 ENAM0 = 0x1D
 
-.org 0x1000
+*=0x1000
 lda #0
 sta 0xF0
 FRAME:
@@ -41,11 +41,33 @@ sta WSYNC
 sta WSYNC
 lda 0xF0
 BNE SKIP_SPRITE_INIT
-.REPEAT 12 nop
+
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
 sta RESM0
-.REPEAT 5 nop
+
+nop
+nop
+nop
+nop
+nop
 sta RESP0
-.REPEAT 5 nop
+
+nop
+nop
+nop
+nop
+nop
 sta RESP1
 lda #1
 sta 0xF0
@@ -180,17 +202,17 @@ dey
 bne OVERSCAN_LOOP
 jmp FRAME
 
-.org 0x1800
+*=0x1800
 
 ; Happy face sprite
-.byte 0b00100100
-.byte 0b00000000
-.byte 0b01000010
-.byte 0b00111100
+!byte 0b00100100
+!byte 0b00000000
+!byte 0b01000010
+!byte 0b00111100
 
-.org 0x1900
+*=0x1900
 ; Heart face sprite
-.byte 0b01100110
-.byte 0b01111110
-.byte 0b00111100
-.byte 0b00011000
+!byte 0b01100110
+!byte 0b01111110
+!byte 0b00111100
+!byte 0b00011000

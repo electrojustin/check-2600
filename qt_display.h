@@ -25,7 +25,7 @@ protected:
 	void keyPressEvent(QKeyEvent* e) override;
 
 public:
-	QtDisplay(int width, int height, int scale=8);
+	QtDisplay(int width, int height, int scale=4);
 	~QtDisplay();
 
 	void swap_buf() override;

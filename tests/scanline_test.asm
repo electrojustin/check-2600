@@ -1,32 +1,58 @@
+VSYNC = 0x00
+VBLANK = 0x01
+WSYNC = 0x02
+COLUP0 = 0x06
+COLUP1 = 0x07
+COLUPF = 0x08
+COLUBK = 0x09
+CTRLPF = 0x0A
+PF0 = 0x0D
+PF1 = 0x0E
+PF2 = 0x0F
+GRP0 = 0x1B
+GRP1 = 0x1C
+RESM0 = 0x12
+RESP0 = 0x10
+RESP1 = 0x11
+HMP0 = 0x20
+HMP1 = 0x21
+HMM0 = 0x22
+HMOVE = 0x2A
+NUSIZ0 = 0x04
+NUSIZ1 = 0x05
+ENAM0 = 0x1D
+
+
+*=0x1000
 FRAME:
-lda #$00
-sta $01
-lda #$02
-VSYNC:
-sta $00
-sta $02
-sta $02
-sta $02
-lda #$00
-sta $00
-ldy #$25
-VBLANK:
-sta $2
+lda #0x00
+sta VBLANK
+lda #0x02
+VSYNC_LOOP:
+sta VSYNC
+sta WSYNC
+sta WSYNC
+sta WSYNC
+lda #0x00
+sta VSYNC
+ldy #37
+VBLANK_LOOP:
+sta WSYNC
 dey
-bne VBLANK
-ldx #$00
-ldy #$C0
+bne VBLANK_LOOP
+ldx #0x00
+ldy #192
 PICTURE:
 inx
-stx $09
-sta $02
+stx COLUBK
+sta WSYNC
 dey
 bne PICTURE
-lda #$42
-sta $01
-ldy #$1E
+lda #0x42
+sta VBLANK
+ldy #30
 OVERSCAN:
-sta $02
+sta WSYNC
 dey
 bne OVERSCAN
-jmp $1000
+jmp 0x1000

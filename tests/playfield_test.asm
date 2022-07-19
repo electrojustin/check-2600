@@ -8,6 +8,7 @@ PF0 = 0x0D
 PF1 = 0x0E
 PF2 = 0x0F
 
+*=0x1000
 FRAME:
 lda #0x00
 sta VBLANK
@@ -58,4 +59,4 @@ OVERSCAN_LOOP:
 sta WSYNC
 dey
 bne OVERSCAN_LOOP
-jmp $1000
+jmp 0x1000

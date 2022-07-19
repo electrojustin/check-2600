@@ -3,6 +3,7 @@
 #include <memory>
 #include <thread>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "tia.h"
 #include "memory.h"

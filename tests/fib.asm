@@ -1,22 +1,24 @@
-LDA #$0A
+*=0x1000
+
+LDA #10
 
 ; Inputs through A
 FIB:
-SBC #$02
-STA $FC ; Store A in 0xFD
-LDA #$00
-STA $FD ; Prev prev
-LDA #$01
-STA $FE ; Prev
-LDA $FC
+SBC #2
+STA 0xFC ; Store A in 0xFD
+LDA #0
+STA 0xFD ; Prev prev
+LDA #1
+STA 0xFE ; Prev
+LDA 0xFC
 FIBLOOP:
-LDA $FD
-ADC $FE
-STA $FF ; Cur
-LDA $FE
-STA $FD
-LDA $FF
-STA $FE
-DEC $FC
+LDA 0xFD
+ADC 0xFE
+STA 0xFF ; Cur
+LDA 0xFE
+STA 0xFD
+LDA 0xFF
+STA 0xFE
+DEC 0xFC
 BNE FIBLOOP
-LDA $FF
+LDA 0xFF
