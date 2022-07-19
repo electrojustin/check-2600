@@ -103,11 +103,9 @@ void TIA::draw_missile(uint8_t missile_color) {
 
 void TIA::process_tia_cycle() {
 	if (ntsc.gun_y > 0 && ntsc.gun_y < NTSC::vsync_lines && !vsync_mode) {
-		printf("Error! No vertical sync!\n");
-		panic();
+		printf("Warning! Late vertical sync!\n");
 	} else if (ntsc.gun_y > NTSC::vsync_lines && vsync_mode) {
-		printf("Error! Too long of vertical sync!\n");
-		panic();
+		printf("Warning! Too long of vertical sync!\n");
 	}
 
 	if (!vblank_mode) {
@@ -165,22 +163,12 @@ void TIA::reset_sprite_position(int& sprite, int hblank_fudge, int fudge) {
 }
 
 void TIA::vsync(uint8_t val) {
-	if (val && val != 2) {
-		printf("Error! Invalid VSYNC value %x\n", val);
-		panic();
-	} else {
-		vsync_mode = val == 2;
-	}
+	vsync_mode = val == 2;
 }
 
 void TIA::vblank(uint8_t val) {
 	//TODO: Add input control support
-	if (val & 0x3C) {
-		printf("Error! Invalid VBLANK value %x\n", val);
-		panic();
-	} else {
-		vblank_mode = val == 2;
-	}
+	vblank_mode = val == 2;
 }
 
 // Sleep the CPU until hblank is (almost) over

@@ -21,7 +21,7 @@ std::unique_ptr<std::thread> emulation_thread;
 
 void emulate() {
 	while(should_execute) {
-//		dump_regs();
+	//	dump_regs();
 		execute_next_insn();
 		tia->process_tia();
 	}

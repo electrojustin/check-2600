@@ -273,7 +273,7 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			if (high_nibble & 1) {
 				return std::make_shared<Relative>(byte1);
 			} else if (high_nibble == 2) {
-				return std::make_shared<Absolute>(program_counter+1, 0, false);
+				return std::make_shared<Absolute>(program_counter+1, 0, false, true);
 			} else if (high_nibble == 0xA || high_nibble == 0xC || high_nibble == 0xE) {
 				return std::make_shared<Immediate>(byte1);
 			} else if (!high_nibble || high_nibble == 0x4 || high_nibble == 0x6) {

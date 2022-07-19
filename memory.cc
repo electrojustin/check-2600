@@ -142,8 +142,8 @@ void push_byte(uint8_t val) {
 		panic();
 	}
 
-	stack_pointer--;
 	stack_region->write_byte(stack_region->start_addr + stack_pointer, val);
+	stack_pointer--;
 }
 
 uint8_t pop_byte() {
@@ -160,8 +160,8 @@ uint8_t pop_byte() {
 		panic();
 	}
 
-	uint8_t ret = stack_region->read_byte(stack_region->start_addr + stack_pointer);
 	stack_pointer++;
+	uint8_t ret = stack_region->read_byte(stack_region->start_addr + stack_pointer);
 
 	return ret;
 }
