@@ -82,4 +82,8 @@ void push_word(uint16_t val);
 uint8_t pop_byte();
 uint16_t pop_word();
 
+// Cache control. Useful for caching parsed instructions
+bool is_dirty_page(uint16_t addr);
+void mark_page_clean(uint16_t addr);
+
 #endif

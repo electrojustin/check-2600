@@ -11,6 +11,8 @@ std::vector<std::shared_ptr<MemoryRegion>> memory_regions;
 
 uint16_t irq_vector_addr;
 
+bool dirty_pages[256] = { false };
+
 RamRegion::RamRegion(uint16_t start_addr, uint16_t end_addr) {
 	this->start_addr = start_addr;
 	this->end_addr = end_addr;
@@ -30,6 +32,7 @@ uint8_t RamRegion::read_byte(uint16_t addr) {
 
 void RamRegion::write_byte(uint16_t addr, uint8_t val) {
 	backing_memory[addr - start_addr] = val;
+	dirty_pages[addr >> 8] = true;
 }
 
 RomRegion::RomRegion(uint16_t start_addr, uint16_t end_addr, uint8_t* init_data) {
@@ -187,4 +190,12 @@ uint16_t read_word(uint16_t addr) {
 void write_word(uint16_t addr, uint16_t val) {
 	write_byte(addr, val & 0xFF);
 	write_byte(addr+1, val >> 8);
+}
+
+bool is_dirty_page(uint16_t addr) {
+	return dirty_pages[addr >> 8];
+}
+
+void mark_page_clean(uint16_t addr) {
+	dirty_pages[addr >> 8] = false;
 }

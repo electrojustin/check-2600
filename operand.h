@@ -12,6 +12,6 @@ public:
 	virtual int get_cycle_penalty() = 0;
 };
 
-std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t byte2);
+std::shared_ptr<Operand> create_operand(uint16_t addr, uint8_t opcode, uint8_t byte1, uint8_t byte2);
 
 #endif

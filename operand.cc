@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+enum IndexMode {
+	no_indexing,
+	x_indexing,
+	y_indexing,
+};
 
 class Relative : public Operand {
 	int8_t offset;
@@ -152,20 +157,31 @@ class ZeroPage : public Operand {
 	uint8_t zero_page_addr;
 	uint8_t index;
 	bool is_indexed;
+	enum IndexMode index_mode;
+
+	uint16_t get_addr() {
+		switch(index_mode) {
+			case no_indexing:
+				return zero_page_addr;
+			case x_indexing:
+				return zero_page_addr + index_x;
+			case y_indexing:
+				return zero_page_addr + index_y;
+		}		
+	}
 
 public:
-	ZeroPage(uint8_t zero_page_addr, uint8_t index, bool is_indexed) {
+	ZeroPage(uint8_t zero_page_addr, enum IndexMode index_mode) {
 		this->zero_page_addr = zero_page_addr;
-		this->index = index;
-		this->is_indexed = is_indexed;
+		this->index_mode = index_mode;
 	}
 
 	int get_val() override {
-		return read_byte(zero_page_addr + index);
+		return read_byte(get_addr());
 	}
 
 	void set_val(int val) override {
-		write_byte(zero_page_addr + index, val);
+		write_byte(get_addr(), val);
 	}
 
 	int get_insn_len() override {
@@ -173,34 +189,45 @@ public:
 	}
 
 	int get_cycle_penalty() override {
-		return is_indexed ? 4 : 3;
+		return index_mode != IndexMode::no_indexing ? 4 : 3;
 	}
 };
 
 class Absolute : public Operand {
 	uint16_t addr;
-	uint8_t index;
 	bool extra_cycle;
 	bool should_read_word;
+	enum IndexMode index_mode;
+
+	uint16_t get_addr() {
+		switch(index_mode) {
+			case no_indexing:
+				return addr;
+			case x_indexing:
+				return addr + index_x;
+			case y_indexing:
+				return addr + index_y;
+		}		
+	}
 
 public:
-	Absolute(uint16_t addr, uint8_t index, bool extra_cycle, bool should_read_word=false) {
+	Absolute(uint16_t addr, IndexMode index_mode, bool extra_cycle, bool should_read_word=false) {
 		this->addr = addr;
-		this->index = index;
+		this->index_mode = index_mode;
 		this->extra_cycle = extra_cycle;
 		this->should_read_word = should_read_word;
 	}
 
 	int get_val() override {
 		if (!should_read_word) {
-			return read_byte(addr + index);
+			return read_byte(get_addr());
 		} else {
-			return read_word(addr + index);
+			return read_word(get_addr());
 		}
 	}
 
 	void set_val(int val) override {
-		write_byte(addr + index, val);
+		write_byte(get_addr(), val);
 	}
 
 	int get_insn_len() override {
@@ -209,7 +236,7 @@ public:
 
 	int get_cycle_penalty() override {
 		uint16_t base_page = addr & (~(PAGE_SIZE-1));
-		uint16_t indexed_page = (addr + index) & (~(PAGE_SIZE-1));
+		uint16_t indexed_page = (get_addr()) & (~(PAGE_SIZE-1));
 		if (extra_cycle || base_page != indexed_page) {
 			return 5;
 		} else {
@@ -263,7 +290,7 @@ public:
 	}
 };
 
-std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t byte2) {
+std::shared_ptr<Operand> create_operand(uint16_t addr, uint8_t opcode, uint8_t byte1, uint8_t byte2) {
 	uint8_t high_nibble = opcode >> 4;
 	uint8_t low_nibble = opcode & 0xF;
 	uint16_t abs_word = ((uint16_t)byte2) << 8 | byte1;
@@ -273,7 +300,7 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			if (high_nibble & 1) {
 				return std::make_shared<Relative>(byte1);
 			} else if (high_nibble == 2) {
-				return std::make_shared<Absolute>(program_counter+1, 0, false, true);
+				return std::make_shared<Absolute>(addr+1, IndexMode::no_indexing, false, true);
 			} else if (high_nibble == 0xA || high_nibble == 0xC || high_nibble == 0xE) {
 				return std::make_shared<Immediate>(byte1);
 			} else if (!high_nibble || high_nibble == 0x4 || high_nibble == 0x6) {
@@ -292,32 +319,32 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			break;
 		case 4:
 			if (high_nibble == 2 || ((high_nibble & 0x8) && !(high_nibble & 1))) {
-				return std::make_shared<ZeroPage>(byte1, 0, false);
+				return std::make_shared<ZeroPage>(byte1, IndexMode::no_indexing);
 			} else if (high_nibble == 0x9 || high_nibble == 0xB) {
-				return std::make_shared<ZeroPage>(byte1, index_x, true);
+				return std::make_shared<ZeroPage>(byte1, IndexMode::x_indexing);
 			}
 			break;
 		case 5:
 			if (high_nibble & 1) {
-				return std::make_shared<ZeroPage>(byte1, index_x, true);
+				return std::make_shared<ZeroPage>(byte1, IndexMode::x_indexing);
 			} else {
-				return std::make_shared<ZeroPage>(byte1, 0, false);
+				return std::make_shared<ZeroPage>(byte1, IndexMode::no_indexing);
 			}
 		case 6:
 			if (high_nibble & 1) {
 				if (high_nibble == 0x9 || high_nibble == 0xB) {
-					return std::make_shared<ZeroPage>(byte1, index_y, true);
+					return std::make_shared<ZeroPage>(byte1, IndexMode::y_indexing);
 				} else {
-					return std::make_shared<ZeroPage>(byte1, index_x, true);
+					return std::make_shared<ZeroPage>(byte1, IndexMode::x_indexing);
 				}
 			} else {
-				return std::make_shared<ZeroPage>(byte1, 0, false);
+				return std::make_shared<ZeroPage>(byte1, IndexMode::no_indexing);
 			}
 		case 8:
 			return std::make_shared<Implied>();
 		case 9:
 			if (high_nibble & 1) {
-				return std::make_shared<Absolute>(abs_word, index_y, opcode == 0x99);
+				return std::make_shared<Absolute>(abs_word, IndexMode::y_indexing, opcode == 0x99);
 			} else {
 				if (high_nibble == 0x8) {
 					break;
@@ -334,28 +361,28 @@ std::shared_ptr<Operand> create_operand(uint8_t opcode, uint8_t byte1, uint8_t b
 			break;
 		case 0xC:
 			if (high_nibble && !(high_nibble & 0x1) && high_nibble != 0x6) {
-				return std::make_shared<Absolute>(program_counter+1, 0, false, true);
+				return std::make_shared<Absolute>(addr+1, IndexMode::no_indexing, false, true);
 			} else if (high_nibble == 0x6) {
-				return std::make_shared<Indirect>(program_counter+1);
+				return std::make_shared<Indirect>(addr+1);
 			} else if (high_nibble == 0xB) {
-				return std::make_shared<Absolute>(abs_word, index_x, false);
+				return std::make_shared<Absolute>(abs_word, IndexMode::x_indexing, false);
 			}
 			break;
 		case 0xD:
 			if (high_nibble & 1) {
-				return std::make_shared<Absolute>(abs_word, index_x, opcode == 0x9D);
+				return std::make_shared<Absolute>(abs_word, IndexMode::x_indexing, opcode == 0x9D);
 			} else {
-				return std::make_shared<Absolute>(abs_word, 0, false);
+				return std::make_shared<Absolute>(abs_word, IndexMode::no_indexing, false);
 			}
 		case 0xE:
 			if (high_nibble == 0x9) {
 				break;
 			} else if (high_nibble == 0xB) {
-				return std::make_shared<Absolute>(abs_word, index_y, false);
+				return std::make_shared<Absolute>(abs_word, IndexMode::y_indexing, false);
 			} else if (high_nibble & 0x1) {
-				return std::make_shared<Absolute>(abs_word, index_x, true);
+				return std::make_shared<Absolute>(abs_word, IndexMode::x_indexing, true);
 			} else {
-				return std::make_shared<Absolute>(abs_word, 0, false);
+				return std::make_shared<Absolute>(abs_word, IndexMode::no_indexing, false);
 			}
 		default:
 			break;
