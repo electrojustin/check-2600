@@ -37,7 +37,10 @@ void NTSC::write_pixel(uint8_t pixel) {
 		auto curr_time = std::chrono::high_resolution_clock::now();
 		auto time_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_buf_swap);
 		last_buf_swap = curr_time;
-		if (time_in_microseconds.count() < refresh_period_us)
+		if (time_in_microseconds.count() < refresh_period_us) {
 			usleep(refresh_period_us - time_in_microseconds.count());
+		} else {
+			printf("Warning! Frame lag! %lus\n", time_in_microseconds.count());
+		}
 	}
 }

@@ -58,6 +58,23 @@ class TIA {
 	bool ball_enable_buf = false;
 	bool ball_enable_delay = false;
 
+	// Collisions
+	bool missile0_player1 = false;
+	bool missile0_player0 = false;
+	bool missile1_player0 = false;
+	bool missile1_player1 = false;
+	bool player0_playfield = false;
+	bool player0_ball = false;
+	bool player1_playfield = false;
+	bool player1_ball = false;
+	bool missile0_playfield = false;
+	bool missile0_ball = false;
+	bool missile1_playfield = false;
+	bool missile1_ball = false;
+	bool ball_playfield = false;
+	bool player0_player1 = false;
+	bool missile0_missile1 = false;
+
 	uint8_t dma_val = 0;
 	std::function<void(uint8_t)> dma_write_request = nullptr;
 
@@ -88,6 +105,7 @@ class TIA {
 	void handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size); 
 	void handle_resmp(int player_scale, int player_x, int& missile_x);
 
+	// Write registers
 	void vsync(uint8_t val);
 	void vblank(uint8_t val);
 	void wsync(uint8_t val);
@@ -125,6 +143,17 @@ class TIA {
 	void resmp1(uint8_t val);
 	void hmove(uint8_t val);
 	void hmclr(uint8_t val);
+	void cxclr(uint8_t val);
+
+	// Read registers
+	uint8_t cxm0p();
+	uint8_t cxm1p();
+	uint8_t cxp0fb();
+	uint8_t cxp1fb();
+	uint8_t cxm0fb();
+	uint8_t cxm1fb();
+	uint8_t cxblpf();
+	uint8_t cxppmm();
 public:
 	// Ratio of TIA clock to CPU clock
 	const static int tia_cycle_ratio = 3;

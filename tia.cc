@@ -110,23 +110,50 @@ void TIA::process_tia_cycle() {
 
 	if (!vblank_mode) {
 		int visible_x = ntsc.gun_x - NTSC::hblank;
-		if (playfield_priority && should_draw_playfield(visible_x)) {
+
+
+		// What objects occupy the current pixel.
+		bool player0 = should_draw_player(visible_x, player0_x, player0_mask, player0_duplicate_mask, player0_scale);
+		bool player1 = should_draw_player(visible_x, player1_x, player1_mask, player1_duplicate_mask, player1_scale);
+		bool missile0 = should_draw_missile(visible_x, missile0_x, missile0_size, missile0_enable, player0_duplicate_mask);
+		bool missile1 = should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable, player1_duplicate_mask);
+		bool ball = should_draw_ball(visible_x);
+		bool playfield = should_draw_playfield(visible_x);
+
+		// Update collision registers
+		missile0_player1 |= missile0 && player1;
+		missile0_player0 |= missile0 && player0;
+		missile1_player0 |= missile1 && player0;
+		missile1_player1 |= missile1 && player1;
+		player0_playfield |= player0 && playfield;
+		player0_ball |= player0 && ball;
+		player1_playfield |= player1 && playfield;
+		player1_ball |= player1 && ball;
+		missile0_playfield |= missile0 && playfield;
+		missile0_ball |= missile0 && ball;
+		missile1_playfield |= missile1 && playfield;
+		missile1_ball |= missile1 && ball;
+		ball_playfield |= ball && playfield;
+		player0_player1 |= player0 && player1;
+		missile0_missile1 |= missile0 && missile1;
+
+		if (playfield_priority && playfield) {
 			draw_playfield(visible_x);
-		} else if (playfield_priority && should_draw_ball(visible_x)) {
+		} else if (playfield_priority && ball) {
 			draw_ball();
-		} else if (should_draw_missile(visible_x, missile0_x, missile0_size, missile0_enable, player0_duplicate_mask)) {
+		} else if (player0) {
 			draw_missile(player0_color);
-		} else if (should_draw_player(visible_x, player0_x, player0_mask, player0_duplicate_mask, player0_scale)) {
+		} else if (missile0) {
 			draw_player(player0_color);
-		} else if (should_draw_player(visible_x, player1_x, player1_mask, player1_duplicate_mask, player1_scale)) {
+		} else if (player1) {
 			draw_player(player1_color);
-		} else if (should_draw_missile(visible_x, missile1_x, missile1_size, missile1_enable, player1_duplicate_mask)) {
+		} else if (missile1) {
 			draw_missile(player1_color);
-		} else if (!playfield_priority && should_draw_playfield(visible_x)) {
+		} else if (!playfield_priority && playfield) {
 			draw_playfield(visible_x);
-		} else if (!playfield_priority && should_draw_ball(visible_x)) {
+		} else if (!playfield_priority && ball) {
 			draw_ball();
-		}else {
+		} else {
 			ntsc.write_pixel(background_color);
 		}
 	} else {
@@ -425,6 +452,57 @@ void TIA::hmclr(uint8_t val) {
 	ball_motion = 0;
 }
 
+void TIA::cxclr(uint8_t val) {
+	missile0_player1 = false;
+	missile0_player0 = false;
+	missile1_player0 = false;
+	missile1_player1 = false;
+	player0_playfield = false;
+	player0_ball = false;
+	player1_playfield = false;
+	player1_ball = false;
+	missile0_playfield = false;
+	missile0_ball = false;
+	missile1_playfield = false;
+	missile1_ball = false;
+	ball_playfield = false;
+	player0_player1 = false;
+	missile0_missile1 = false;
+}
+
+
+uint8_t TIA::cxm0p() {
+	return (uint8_t)missile0_player0 << 7 | (uint8_t)missile0_player1 << 6;
+}
+
+uint8_t TIA::cxm1p() {
+	return (uint8_t)missile1_player0 << 7 | (uint8_t)missile1_player1 << 6;
+}
+
+uint8_t TIA::cxp0fb() {
+	return (uint8_t)player0_playfield << 7 | (uint8_t)player0_ball << 6;
+}
+
+uint8_t TIA::cxp1fb() {
+	return (uint8_t)player1_playfield << 7 | (uint8_t)player1_ball << 6;
+}
+
+uint8_t TIA::cxm0fb() {
+	return (uint8_t)missile0_playfield << 7 | (uint8_t)missile0_ball << 6;
+}
+
+uint8_t TIA::cxm1fb() {
+	return (uint8_t)missile1_playfield << 7 | (uint8_t)missile1_ball << 6;
+}
+
+uint8_t TIA::cxblpf() {
+	return (uint8_t)ball_playfield << 7;
+}
+
+uint8_t TIA::cxppmm() {
+	return (uint8_t)player0_player1 << 7 | (uint8_t)missile0_missile1 << 6;
+}
+
 
 TIA::TIA(uint16_t start, uint16_t end) {
 	dma_region = std::make_shared<DmaRegion>(start, end, std::bind(&TIA::dma_read_hook, this, _1), std::bind(&TIA::dma_write_hook, this, _1, _2));
@@ -467,6 +545,16 @@ TIA::TIA(uint16_t start, uint16_t end) {
 	dma_write_table[0x29] = std::bind(&TIA::resmp1, this, _1);
 	dma_write_table[0x2A] = std::bind(&TIA::hmove, this, _1);
 	dma_write_table[0x2B] = std::bind(&TIA::hmclr, this, _1);
+	dma_write_table[0x2C] = std::bind(&TIA::cxclr, this, _1);
+
+	dma_read_table[0x30] = std::bind(&TIA::cxm0p, this);
+	dma_read_table[0x31] = std::bind(&TIA::cxm1p, this);
+	dma_read_table[0x32] = std::bind(&TIA::cxp0fb, this);
+	dma_read_table[0x33] = std::bind(&TIA::cxp1fb, this);
+	dma_read_table[0x34] = std::bind(&TIA::cxm0fb, this);
+	dma_read_table[0x35] = std::bind(&TIA::cxm1fb, this);
+	dma_read_table[0x36] = std::bind(&TIA::cxblpf, this);
+	dma_read_table[0x37] = std::bind(&TIA::cxppmm, this);
 }
 
 void TIA::process_tia() {

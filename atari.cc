@@ -31,7 +31,7 @@ void load_program_file(const char* filename) {
 	uint8_t* rom_backing = (uint8_t*)malloc(ROM_END - ROM_START);
 	FILE* program_file = fopen(filename, "r");
 	if (!program_file) {
-		printf("could not open %s", filename);
+		printf("could not open %s\n", filename);
 		exit(-1);
 	}
 
