@@ -6,6 +6,8 @@
 #define IRQ_VECTOR 0xFFFE
 #define TIA_START 0x0000
 #define TIA_END 0x007F
+#define PIA_START 0x0284
+#define PIA_END 0x0297
 #define RAM_START 0x0080
 #define RAM_END 0x00FF
 #define ROM_START 0xF000

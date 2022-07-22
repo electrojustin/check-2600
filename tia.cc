@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "atari.h"
 #include "registers.h"
 
 using std::placeholders::_1;
@@ -504,8 +505,8 @@ uint8_t TIA::cxppmm() {
 }
 
 
-TIA::TIA(uint16_t start, uint16_t end) {
-	dma_region = std::make_shared<DmaRegion>(start, end, std::bind(&TIA::dma_read_hook, this, _1), std::bind(&TIA::dma_write_hook, this, _1, _2));
+TIA::TIA() {
+	dma_region = std::make_shared<DmaRegion>(TIA_START, TIA_END, std::bind(&TIA::dma_read_hook, this, _1), std::bind(&TIA::dma_write_hook, this, _1, _2));
 	tia_cycle_num = tia_cycle_ratio * cycle_num;
 
 	dma_write_table[0x00] = std::bind(&TIA::vsync, this, _1);

@@ -9,8 +9,10 @@
 #include "memory.h"
 #include "registers.h"
 #include "cpu.h"
+#include "pia.h"
 
 std::unique_ptr<TIA> tia;
+std::unique_ptr<PIA> pia;
 
 std::shared_ptr<RamRegion> ram = nullptr;
 std::shared_ptr<RomRegion> rom = nullptr;
@@ -40,7 +42,8 @@ void load_program_file(const char* filename) {
 
 	init_registers(ROM_START);
 
-	tia = std::make_unique<TIA>(TIA_START, TIA_END);
+	tia = std::make_unique<TIA>();
+	pia = std::make_unique<PIA>();
 
 	ram = std::make_shared<RamRegion>(RAM_START, RAM_END);
 	rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
@@ -50,6 +53,7 @@ void load_program_file(const char* filename) {
 	memory_regions.push_back(stack);
 	memory_regions.push_back(rom);
 	memory_regions.push_back(tia->get_dma_region());
+	memory_regions.push_back(pia->get_dma_region());
 
 	init_registers(read_word(RESET_VECTOR));
 

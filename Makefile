@@ -4,8 +4,8 @@ INCLUDE=-I/usr/include/qt -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/us
 #INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets
 LINK=-lstdc++ -L/usr/lib/x86_64-linux-gnu/ -lQt5Core -lQt5Gui -lQt5Widgets
 ASM=acme
-atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o
-	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o -o atari2600
+atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o
+	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o -o atari2600
 main.o: main.cc atari.h
 	${CC} ${INCLUDE} -fPIC -c main.cc
 registers.o: registers.h registers.cc
@@ -26,8 +26,10 @@ ntsc.o: ntsc.cc ntsc.h display.h
 	${CC} ${INCLUDE} -c ntsc.cc
 tia.o: tia.cc tia.h ntsc.h registers.h memory.h
 	${CC} ${INCLUDE} -c tia.cc
-atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h
+atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h pia.h
 	${CC} ${INCLUDE} -c atari.cc
+pia.o: pia.cc pia.h registers.h memory.h
+	${CC} ${INCLUDE} -c pia.cc
 tests: tests/fib.bin tests/scanline_test.bin tests/playfield_test.bin tests/player_test.bin tests/nusiz_test.bin
 tests/fib.bin: tests/fib.asm
 	${ASM} -o tests/fib.bin tests/fib.asm

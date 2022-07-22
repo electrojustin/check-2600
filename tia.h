@@ -165,7 +165,7 @@ public:
 	const static int resp_player_offset = 5;
 	const static int resp_missile_ball_offset = 4;
 
-	TIA(uint16_t start, uint16_t end);
+	TIA();
 
 	std::shared_ptr<DmaRegion> get_dma_region() {
 		return dma_region;
