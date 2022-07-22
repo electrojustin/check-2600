@@ -13,6 +13,33 @@ uint16_t irq_vector_addr;
 
 bool dirty_pages[256] = { false };
 
+std::vector<std::shared_ptr<MemoryRegion>> page_table[256];
+
+std::shared_ptr<MemoryRegion> stack_region;
+
+std::shared_ptr<MemoryRegion> get_region_for_addr(uint16_t addr) {
+	// Check the page tables so we don't have to do a linear scan.
+	// Technically two different ranges can occupy the same 256 byte page.
+	// For example, on the Atari 2600, the TIA and the RAM occupy the zero page.
+	for (auto region : page_table[addr >> 8]) {
+		if (region->start_addr <= addr && region->end_addr >= addr)
+			return region;
+	}
+
+	// Linear scan
+	std::shared_ptr<MemoryRegion> ret = nullptr;
+	for (auto region : memory_regions) {
+		if (region->start_addr <= addr && region->end_addr >= addr) {
+			ret = region;
+			break;
+		}
+	}
+	if (ret)
+		page_table[addr >> 8].emplace_back(ret);
+
+	return ret;
+}
+
 RamRegion::RamRegion(uint16_t start_addr, uint16_t end_addr) {
 	this->start_addr = start_addr;
 	this->end_addr = end_addr;
@@ -109,34 +136,33 @@ void StackRegion::write_byte(uint16_t addr, uint8_t val) {
 
 
 uint8_t read_byte(uint16_t addr) {
-	for (auto region : memory_regions) {
-		if (region->start_addr <= addr && region->end_addr >= addr)
-			return region->read_byte(addr);
+	auto region = get_region_for_addr(addr);
+	if (!region) {
+		printf("Error! Invalid read at address %x\n", addr);
+		panic();
+		return -1;
+	} else {
+		return region->read_byte(addr);
 	}
-
-	printf("Error! Invalid read at address %x\n", addr);
-	panic();
-	return -1;
 }
 
 void write_byte(uint16_t addr, uint8_t val) {
-	for (auto region : memory_regions) {
-		if (region->start_addr <= addr && region->end_addr >= addr) {
-			region->write_byte(addr, val);
-			return;
-		}
+	auto region = get_region_for_addr(addr);
+	if (!region) {
+		printf("Error! Invalid write at address %x\n", addr);
+		panic();
+	} else {
+		region->write_byte(addr, val);
 	}
-
-	printf("Error! Invalid write at address %x\n", addr);
-	panic();
 }
 
 void push_byte(uint8_t val) {
-	std::shared_ptr<MemoryRegion> stack_region = nullptr;
-	for (auto region : memory_regions) {
-		if (region->type == STACK) {
-			stack_region = region;
-			break;
+	if (!stack_region) {
+		for (auto region : memory_regions) {
+			if (region->type == STACK) {
+				stack_region = region;
+				break;
+			}
 		}
 	}
 
@@ -150,11 +176,12 @@ void push_byte(uint8_t val) {
 }
 
 uint8_t pop_byte() {
-	std::shared_ptr<MemoryRegion> stack_region = nullptr;
-	for (auto region : memory_regions) {
-		if (region->type == STACK) {
-			stack_region = region;
-			break;
+	if (!stack_region) {
+		for (auto region : memory_regions) {
+			if (region->type == STACK) {
+				stack_region = region;
+				break;
+			}
 		}
 	}
 
