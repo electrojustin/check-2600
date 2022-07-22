@@ -154,6 +154,14 @@ class TIA {
 	uint8_t cxm1fb();
 	uint8_t cxblpf();
 	uint8_t cxppmm();
+
+	// Audio registers
+	void audv0(uint8_t val);
+	void audv1(uint8_t val);
+	void audf0(uint8_t val);
+	void audf1(uint8_t val);
+	void audc0(uint8_t val);
+	void audc1(uint8_t val);
 public:
 	// Ratio of TIA clock to CPU clock
 	const static int tia_cycle_ratio = 3;

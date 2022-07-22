@@ -505,6 +505,15 @@ uint8_t TIA::cxppmm() {
 }
 
 
+// TODO: Add audio support
+void TIA::audv0(uint8_t val) {}
+void TIA::audv1(uint8_t val) {}
+void TIA::audf0(uint8_t val) {}
+void TIA::audf1(uint8_t val) {}
+void TIA::audc0(uint8_t val) {}
+void TIA::audc1(uint8_t val) {}
+
+
 TIA::TIA() {
 	dma_region = std::make_shared<DmaRegion>(TIA_START, TIA_END, std::bind(&TIA::dma_read_hook, this, _1), std::bind(&TIA::dma_write_hook, this, _1, _2));
 	tia_cycle_num = tia_cycle_ratio * cycle_num;
@@ -529,6 +538,12 @@ TIA::TIA() {
 	dma_write_table[0x12] = std::bind(&TIA::resm0, this, _1);
 	dma_write_table[0x13] = std::bind(&TIA::resm1, this, _1);
 	dma_write_table[0x14] = std::bind(&TIA::resbl, this, _1);
+	dma_write_table[0x15] = std::bind(&TIA::audc0, this, _1);
+	dma_write_table[0x16] = std::bind(&TIA::audc1, this, _1);
+	dma_write_table[0x17] = std::bind(&TIA::audf0, this, _1);
+	dma_write_table[0x18] = std::bind(&TIA::audf1, this, _1);
+	dma_write_table[0x19] = std::bind(&TIA::audv0, this, _1);
+	dma_write_table[0x1A] = std::bind(&TIA::audv1, this, _1);
 	dma_write_table[0x1B] = std::bind(&TIA::grp0, this, _1);
 	dma_write_table[0x1C] = std::bind(&TIA::grp1, this, _1);
 	dma_write_table[0x1D] = std::bind(&TIA::enam0, this, _1);
