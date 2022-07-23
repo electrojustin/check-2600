@@ -9,12 +9,12 @@
 #define TIA_H
 
 class TIA {
-	NTSC ntsc;
 	std::shared_ptr<DmaRegion> dma_region;
 	int64_t tia_cycle_num;
 	uint64_t last_process_cycle_num;
 	bool vsync_mode = false;
 	bool vblank_mode = false;
+	bool rsync_mode = false;
 
 	uint8_t background_color = 0;
 
@@ -106,7 +106,7 @@ class TIA {
 	void handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size); 
 	void handle_resmp(int player_scale, int player_x, int& missile_x);
 
-	// Write registers
+	// Graphics registers
 	void vsync(uint8_t val);
 	void vblank(uint8_t val);
 	void rsync(uint8_t val);
@@ -147,7 +147,7 @@ class TIA {
 	void hmclr(uint8_t val);
 	void cxclr(uint8_t val);
 
-	// Read registers
+	// Collision registers
 	uint8_t cxm0p();
 	uint8_t cxm1p();
 	uint8_t cxp0fb();
@@ -156,6 +156,14 @@ class TIA {
 	uint8_t cxm1fb();
 	uint8_t cxblpf();
 	uint8_t cxppmm();
+
+	// Input regsiters
+	uint8_t inpt0();
+	uint8_t inpt1();
+	uint8_t inpt2();
+	uint8_t inpt3();
+	uint8_t inpt4();
+	uint8_t inpt5();
 
 	// Audio registers
 	void audv0(uint8_t val);
@@ -174,6 +182,8 @@ public:
 	// RESXX offsets
 	const static int resp_player_offset = 5;
 	const static int resp_missile_ball_offset = 4;
+
+	NTSC ntsc;
 
 	TIA();
 

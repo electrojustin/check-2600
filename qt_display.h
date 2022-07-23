@@ -23,6 +23,7 @@ protected:
 	void paintEvent(QPaintEvent* e) override;
 	void timerEvent(QTimerEvent* e) override;
 	void keyPressEvent(QKeyEvent* e) override;
+	void keyReleaseEvent(QKeyEvent* e) override;
 
 public:
 	QtDisplay(int width, int height, int scale=4);

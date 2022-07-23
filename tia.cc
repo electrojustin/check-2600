@@ -4,6 +4,7 @@
 
 #include "atari.h"
 #include "registers.h"
+#include "input.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -198,11 +199,12 @@ void TIA::vblank(uint8_t val) {
 void TIA::rsync(uint8_t val) {
 	tia_cycle_num = -3;
 	ntsc.gun_x = -3;
+	rsync_mode = true;
 }
 
 // Sleep the CPU until hblank is (almost) over
 void TIA::wsync(uint8_t val) {
-	cycle_num += (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
+	cycle_num = last_process_cycle_num + (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
 }
 
 void TIA::handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size) {
@@ -510,6 +512,31 @@ uint8_t TIA::cxppmm() {
 }
 
 
+// TODO: Implement actual joystick controls
+uint8_t TIA::inpt0() {
+	return 0;
+}
+
+uint8_t TIA::inpt1() {
+	return 0;
+}
+
+uint8_t TIA::inpt2() {
+	return 0;
+}
+
+uint8_t TIA::inpt3() {
+	return 0;
+}
+
+uint8_t TIA::inpt4() {
+	return ~(uint8_t)player0_fire << 7;
+}
+
+uint8_t TIA::inpt5() {
+	return ~(uint8_t)player1_fire << 7;
+}
+
 // TODO: Add audio support
 void TIA::audv0(uint8_t val) {}
 void TIA::audv1(uint8_t val) {}
@@ -578,6 +605,12 @@ TIA::TIA() {
 	dma_read_table[0x35] = std::bind(&TIA::cxm1fb, this);
 	dma_read_table[0x36] = std::bind(&TIA::cxblpf, this);
 	dma_read_table[0x37] = std::bind(&TIA::cxppmm, this);
+	dma_read_table[0x38] = std::bind(&TIA::inpt0, this);
+	dma_read_table[0x39] = std::bind(&TIA::inpt1, this);
+	dma_read_table[0x3A] = std::bind(&TIA::inpt2, this);
+	dma_read_table[0x3B] = std::bind(&TIA::inpt3, this);
+	dma_read_table[0x3C] = std::bind(&TIA::inpt4, this);
+	dma_read_table[0x3D] = std::bind(&TIA::inpt5, this);
 
 	for (int i = 0; i < 0x40; i++)
 		dma_write_table[i+0x40] = dma_write_table[i];
@@ -590,9 +623,13 @@ void TIA::process_tia() {
 		dma_val = 0;
 	}
 
-	for (uint64_t i = 0; i < cycle_num - last_process_cycle_num; i++) {
-		for (int j = 0; j < tia_cycle_ratio; j++)
-			process_tia_cycle();
+	if (!rsync_mode) {
+		for (uint64_t i = 0; i < cycle_num - last_process_cycle_num; i++) {
+			for (int j = 0; j < tia_cycle_ratio; j++)
+				process_tia_cycle();
+		}
+	} else {
+		rsync_mode = false;
 	}
 
 	last_process_cycle_num = cycle_num;

@@ -1,7 +1,10 @@
 #include "qt_display.h"
 
+#include <QKeyEvent>
+
 #include "atari.h"
 #include "registers.h"
+#include "input.h"
 
 // NTSC color palette
 // Stored in BGRA format
@@ -195,5 +198,57 @@ void QtDisplay::timerEvent(QTimerEvent* e) {
 }
 
 void QtDisplay::keyPressEvent(QKeyEvent* e) {
-	Q_UNUSED(e);
+	if (!e->isAutoRepeat()) {
+		int key = e->key();
+
+		switch (key) {
+			case Qt::Key_Left:
+				player0_left = true;
+				break;
+			case Qt::Key_Right:
+				player0_right = true;
+				break;
+			case Qt::Key_Up:
+				player0_up = true;
+				break;
+			case Qt::Key_Down:
+				player0_down = true;
+				break;
+			case Qt::Key_Space:
+				player0_fire = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	QWidget::keyPressEvent(e);
 }	
+
+void QtDisplay::keyReleaseEvent(QKeyEvent* e) {
+	if (!e->isAutoRepeat()) {
+		int key = e->key();
+
+		switch (key) {
+			case Qt::Key_Left:
+				player0_left = false;
+				break;
+			case Qt::Key_Right:
+				player0_right = false;
+				break;
+			case Qt::Key_Up:
+				player0_up = false;
+				break;
+			case Qt::Key_Down:
+				player0_down = false;
+				break;
+			case Qt::Key_Space:
+				player0_fire = false;
+				break;
+			default:
+				break;
+		}
+	}
+
+	QWidget::keyReleaseEvent(e);
+}
