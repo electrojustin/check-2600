@@ -29,9 +29,10 @@ int cache_insn(uint16_t addr, bool should_succeed) {
 	auto operand = create_operand(addr, opcode, byte1, byte2);
 
 	auto exec_step = [=]() {
+		// Note that we try to increment the cycle counter before evaluating the operand to accurately read timers
+		cycle_num += operand->get_cycle_penalty();
 		insn(operand);
 		program_counter += operand->get_insn_len();
-		cycle_num += operand->get_cycle_penalty();
 	};
 
 	instruction_cache.emplace(std::make_pair(addr, exec_step));
