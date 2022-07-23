@@ -335,6 +335,8 @@ void TIA::resbl(uint8_t val) {
 }
 
 void TIA::grp0(uint8_t val) {
+	val = reverse_byte(val);
+
 	if (!player0_mask_delay) {
 		player0_mask = val;
 	} else {
@@ -346,6 +348,8 @@ void TIA::grp0(uint8_t val) {
 }
 
 void TIA::grp1(uint8_t val) {
+	val = reverse_byte(val);
+
 	if (!player1_mask_delay) {
 		player1_mask = val;
 	} else {

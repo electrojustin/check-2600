@@ -16,6 +16,17 @@ NTSC::NTSC() {
 
 void NTSC::vsync() {
 	gun_y = 0;
+
+	display->swap_buf();
+
+	auto curr_time = std::chrono::high_resolution_clock::now();
+	auto time_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_buf_swap);
+	if (time_in_microseconds.count() < refresh_period_us) {
+		usleep(refresh_period_us - time_in_microseconds.count());
+	} else {
+		printf("Warning! Frame lag! %lu us\n", time_in_microseconds.count());
+	}
+	last_buf_swap = std::chrono::high_resolution_clock::now();
 }
 
 void NTSC::write_pixel(uint8_t pixel) {
@@ -29,19 +40,5 @@ void NTSC::write_pixel(uint8_t pixel) {
 	if (gun_x >= columns) {
 		gun_x = 0;
 		gun_y++;
-	}
-	if (gun_y >= scanlines) {
-//		gun_y = 0;
-
-		display->swap_buf();
-
-		auto curr_time = std::chrono::high_resolution_clock::now();
-		auto time_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_buf_swap);
-		if (time_in_microseconds.count() < refresh_period_us) {
-//			usleep(refresh_period_us - time_in_microseconds.count());
-		} else {
-			printf("Warning! Frame lag! %lus\n", time_in_microseconds.count());
-		}
-		last_buf_swap = std::chrono::high_resolution_clock::now();
 	}
 }
