@@ -250,35 +250,12 @@ public:
 	Implied() {}
 
 	int get_val() override {
-		printf("Error! Implied operands do not support get!\n");
-		panic();
-		return 0;
+		return 1;
 	}
 
 	void set_val(int val) override {
 		printf("Error! Implied operands do not support set!\n");
 		panic();
-	}
-
-	int get_insn_len() override {
-		return 1;
-	}
-
-	int get_cycle_penalty() override {
-		return 0;
-	}
-};
-
-class Accumulator : public Operand {
-public:
-	Accumulator() {}
-
-	int get_val() override {
-		return acc;
-	}
-
-	void set_val(int val) override {
-		acc = val;
 	}
 
 	int get_insn_len() override {
@@ -353,11 +330,8 @@ std::shared_ptr<Operand> create_operand(uint16_t addr, uint8_t opcode, uint8_t b
 				}
 			}
 		case 0xA:
-			if (!high_nibble || high_nibble == 0x2 || high_nibble == 0x4 || high_nibble == 0x6) {
-				return std::make_shared<Accumulator>();
-			} else if (!(high_nibble & 1) || high_nibble == 0x9 || high_nibble == 0x0B) {
+			if (!(high_nibble & 0x1) || high_nibble == 0x9 || high_nibble == 0xB)
 				return std::make_shared<Implied>();
-			}
 			break;
 		case 0xC:
 			if (high_nibble && !(high_nibble & 0x1) && high_nibble != 0x6) {

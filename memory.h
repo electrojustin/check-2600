@@ -58,19 +58,9 @@ public:
 	void write_byte(uint16_t addr, uint8_t val) override;
 };
 
-class StackRegion : public MemoryRegion {
-private:
-	uint8_t* backing_memory;
-
-public:
-	StackRegion(uint16_t start_addr, uint16_t end_addr);
-	~StackRegion();
-	uint8_t read_byte(uint16_t addr) override;
-	void write_byte(uint16_t addr, uint8_t val) override;
-};	
-
 
 extern std::vector<std::shared_ptr<MemoryRegion>> memory_regions;
+extern std::shared_ptr<MemoryRegion> stack_region;
 extern uint16_t irq_vector_addr;
 
 uint8_t read_byte(uint16_t addr);

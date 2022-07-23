@@ -8,14 +8,13 @@
 #include "registers.h"
 
 std::vector<std::shared_ptr<MemoryRegion>> memory_regions;
+std::shared_ptr<MemoryRegion> stack_region;
 
 uint16_t irq_vector_addr;
 
 bool dirty_pages[256] = { false };
 
 std::vector<std::shared_ptr<MemoryRegion>> page_table[256];
-
-std::shared_ptr<MemoryRegion> stack_region;
 
 std::shared_ptr<MemoryRegion> get_region_for_addr(uint16_t addr) {
 	// Check the page tables so we don't have to do a linear scan.
@@ -47,6 +46,7 @@ RamRegion::RamRegion(uint16_t start_addr, uint16_t end_addr) {
 
 	size_t len = end_addr - start_addr + 1;
 	backing_memory = (uint8_t*)malloc(len);
+	memset(backing_memory, 0, len);
 }
 
 RamRegion::~RamRegion() {
@@ -102,38 +102,6 @@ void DmaRegion::write_byte(uint16_t addr, uint8_t val) {
 	write_hook(addr, val);
 }
 
-StackRegion::StackRegion(uint16_t start_addr, uint16_t end_addr) {
-	this->start_addr = start_addr;
-	this->end_addr = end_addr;
-	type = STACK;
-
-	size_t len = end_addr - start_addr + 1;
-	backing_memory = (uint8_t*)malloc(len);
-}
-
-StackRegion::~StackRegion() {
-	free(backing_memory);
-}
-
-uint8_t StackRegion::read_byte(uint16_t addr) {
-	if (addr < start_addr || addr > end_addr) {
-		printf("Error! Stack overflow!\n");
-		panic();
-	}
-
-	return backing_memory[addr - start_addr];
-}
-
-void StackRegion::write_byte(uint16_t addr, uint8_t val) {
-	if (addr < start_addr || addr > end_addr) {
-		printf("Error! Stack overflow!\n");
-		panic();
-	}
-
-	backing_memory[addr - start_addr] = val;
-}
-
-
 
 uint8_t read_byte(uint16_t addr) {
 	auto region = get_region_for_addr(addr);
@@ -157,41 +125,15 @@ void write_byte(uint16_t addr, uint8_t val) {
 }
 
 void push_byte(uint8_t val) {
-	if (!stack_region) {
-		for (auto region : memory_regions) {
-			if (region->type == STACK) {
-				stack_region = region;
-				break;
-			}
-		}
-	}
-
-	if (!stack_region) {
-		printf("Error! Attempted to push byte, but machine has no stack.\n");
-		panic();
-	}
-
-	stack_region->write_byte(stack_region->start_addr + stack_pointer, val);
+	uint16_t stack_page = stack_region->start_addr & (~(PAGE_SIZE-1));
+	stack_region->write_byte(stack_page + stack_pointer, val);
 	stack_pointer--;
 }
 
 uint8_t pop_byte() {
-	if (!stack_region) {
-		for (auto region : memory_regions) {
-			if (region->type == STACK) {
-				stack_region = region;
-				break;
-			}
-		}
-	}
-
-	if (!stack_region) {
-		printf("Error! Attempted to push byte, but machine has no stack.\n");
-		panic();
-	}
-
+	uint16_t stack_page = stack_region->start_addr & (~(PAGE_SIZE-1));
 	stack_pointer++;
-	uint8_t ret = stack_region->read_byte(stack_region->start_addr + stack_pointer);
+	uint8_t ret = stack_region->read_byte(stack_page + stack_pointer);
 
 	return ret;
 }

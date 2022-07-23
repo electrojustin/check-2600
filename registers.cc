@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 uint8_t acc;
 uint8_t index_x;
@@ -17,7 +18,7 @@ void init_registers(uint16_t rom_start) {
 	acc = 0;
 	index_x = 0;
 	index_y = 0;
-	flags = 0b00110110;
+	flags = 0b00000000;
 	stack_pointer = 255;
 	program_counter = rom_start;
 	cycle_num = 0;
@@ -68,10 +69,28 @@ void dump_regs() {
 	printf("SP: %x\n", stack_pointer);
 	printf("PC: %x\n", program_counter);
 	printf("Cycle: %lu\n", cycle_num);
+	printf("\n");
+
+	printf("RAM:\n");
+	printf("  ");
+	for (int low_nibble = 0; low_nibble <= 0xF; low_nibble++) {
+		printf("%x  ", low_nibble);
+	}
+	printf("\n");
+	for (int high_nibble = 0x8; high_nibble <= 0xF; high_nibble++) {
+		printf("%x ", high_nibble);
+		for (int low_nibble = 0; low_nibble <= 0xF; low_nibble++) {
+			printf("%02x ", read_byte(high_nibble << 4 | low_nibble));
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
 void panic() {
 	printf("Unrecoverable error!\n");
 	dump_regs();
+	fflush(stdout);
+	usleep(1000);
 	exit(-1);
 }

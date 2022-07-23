@@ -37,7 +37,7 @@ void _and(std::shared_ptr<Operand> operand) {
 }
 
 void _asl(std::shared_ptr<Operand> operand) {
-	int result = ((acc & 0x7F) << operand->get_val()) | (acc & 0x80);
+	int result = (acc & 0x7F) << operand->get_val() | (acc & 0x80);
 	handle_arithmetic_flags(result);
 	set_carry(result & (~0xFF));
 	acc = result & 0xFF;
@@ -185,23 +185,23 @@ void _clv(std::shared_ptr<Operand> operand) {
 }
 
 void _cmp(std::shared_ptr<Operand> operand) {
-	int result = (acc - operand->get_val()) & 0xFF;
-	handle_overflow(acc, operand->get_val(), result);
+	int result = acc - operand->get_val();
 	handle_arithmetic_flags(result);
+	handle_overflow(operand->get_val(), acc, result);
 	set_carry(!(result & (~0xFF)));
 }
 
 void _cpx(std::shared_ptr<Operand> operand) {
-	int result = (index_x - operand->get_val()) & 0xFF;
-	handle_overflow(index_x, operand->get_val(), result);
+	int result = index_x - operand->get_val();
 	handle_arithmetic_flags(result);
+	handle_overflow(operand->get_val(), index_x, result);
 	set_carry(!(result & (~0xFF)));
 }
 
 void _cpy(std::shared_ptr<Operand> operand) {
-	int result = (index_y - operand->get_val()) & 0xFF;
-	handle_overflow(index_y, operand->get_val(), result);
+	int result = index_y - operand->get_val();
 	handle_arithmetic_flags(result);
+	handle_overflow(operand->get_val(), index_y, result);
 	set_carry(!(result & (~0xFF)));
 }
 
@@ -255,7 +255,8 @@ void _jmp(std::shared_ptr<Operand> operand) {
 }
 
 void _jsr(std::shared_ptr<Operand> operand) {
-	push_word(program_counter + operand->get_insn_len());
+	// A quirk in the 6502 stores return address - 1 for JSR.
+	push_word(program_counter + operand->get_insn_len() - 1);
 	program_counter = operand->get_val() - operand->get_insn_len();
 	cycle_num += 2;
 }
@@ -315,8 +316,7 @@ void _plp(std::shared_ptr<Operand> operand) {
 }
 
 void _rol(std::shared_ptr<Operand> operand) {
-	int val = operand->get_val();
-	int result = ((acc << val) | (acc >> (8-val))) & 0xFF;
+	int result = ((acc << operand->get_val()) | (acc >> (8-operand->get_val()))) & 0xFF;
 	handle_arithmetic_flags(result);
 	set_carry(result & (~0xFF));
 	acc = result;
@@ -324,8 +324,7 @@ void _rol(std::shared_ptr<Operand> operand) {
 }
 
 void _ror(std::shared_ptr<Operand> operand) {
-	int val = operand->get_val();
-	int result = ((acc >> val) | (acc << (8-val))) & 0xFF;
+	int result = ((acc >> operand->get_val()) | (acc << (8-operand->get_val()))) & 0xFF;
 	handle_arithmetic_flags(result);
 	set_carry(result & (~0xFF));
 	acc = result;
@@ -339,7 +338,7 @@ void _rti(std::shared_ptr<Operand> operand) {
 }
 
 void _rts(std::shared_ptr<Operand> operand) {
-	program_counter = pop_word() - operand->get_insn_len();
+	program_counter = pop_word() - operand->get_insn_len() + 1;
 	cycle_num += 6;
 }
 
@@ -674,9 +673,9 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
 };
 
-std::function<void(std::shared_ptr<Operand>)> get_insn(uint8_t opcode) {
+std::function<void(std::shared_ptr<Operand>)> get_insn(uint8_t opcode, bool should_succeed) {
 	auto ret = opcode_table[opcode];
-	if (!ret) {
+	if (!ret && should_succeed) {
 		printf("Error! Invalid opcode %x\n", opcode);
 		panic();
 	}
