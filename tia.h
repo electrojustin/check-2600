@@ -11,7 +11,8 @@
 class TIA {
 	NTSC ntsc;
 	std::shared_ptr<DmaRegion> dma_region;
-	uint64_t tia_cycle_num;
+	int64_t tia_cycle_num;
+	uint64_t last_process_cycle_num;
 	bool vsync_mode = false;
 	bool vblank_mode = false;
 
@@ -108,6 +109,7 @@ class TIA {
 	// Write registers
 	void vsync(uint8_t val);
 	void vblank(uint8_t val);
+	void rsync(uint8_t val);
 	void wsync(uint8_t val);
 	void nusiz0(uint8_t val);
 	void nusiz1(uint8_t val);

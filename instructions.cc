@@ -37,7 +37,7 @@ void _and(std::shared_ptr<Operand> operand) {
 }
 
 void _asl(std::shared_ptr<Operand> operand) {
-	int result = (acc & 0x7F) << operand->get_val() | (acc & 0x80);
+	int result = ((acc << operand->get_val()) & 0x7F) | (acc & 0x80);
 	handle_arithmetic_flags(result);
 	set_carry(result & (~0xFF));
 	acc = result & 0xFF;

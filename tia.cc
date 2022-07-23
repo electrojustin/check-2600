@@ -23,8 +23,7 @@ int mod(int a, int b) {
 uint8_t TIA::dma_read_hook(uint16_t addr) {
 	auto read_func = dma_read_table[addr];
 	if (!read_func) {
-		printf("Error! Invalid DMA read at %x\n", addr);
-		panic();
+		printf("Warning! Invalid DMA read at %x\n", addr);
 		return 0;
 	}
 
@@ -34,8 +33,8 @@ uint8_t TIA::dma_read_hook(uint16_t addr) {
 void TIA::dma_write_hook(uint16_t addr, uint8_t val) {
 	auto write_func = dma_write_table[addr];
 	if (!write_func) {
-		printf("Error! Invalid DMA write at %x\n", addr);
-		panic();
+		printf("Warning! Invalid DMA write at %x\n", addr);
+		return;
 	}
 
 	dma_write_request = write_func;
@@ -103,12 +102,6 @@ void TIA::draw_missile(uint8_t missile_color) {
 }
 
 void TIA::process_tia_cycle() {
-	if (ntsc.gun_y > 0 && ntsc.gun_y < NTSC::vsync_lines && !vsync_mode) {
-		printf("Warning! Late vertical sync!\n");
-	} else if (ntsc.gun_y > NTSC::vsync_lines && vsync_mode) {
-		printf("Warning! Too long of vertical sync!\n");
-	}
-
 	if (!vblank_mode) {
 		int visible_x = ntsc.gun_x - NTSC::hblank;
 
@@ -182,7 +175,7 @@ void TIA::handle_playfield_mirror() {
 }
 
 void TIA::reset_sprite_position(int& sprite, int hblank_fudge, int fudge) {
-	sprite = ((cycle_num % cpu_scanline_cycles) * tia_cycle_ratio) - NTSC::hblank;
+	sprite = (tia_cycle_num % NTSC::columns) - NTSC::hblank; 
 	if (sprite < 0) {
 		sprite = hblank_fudge;
 	} else {
@@ -191,7 +184,10 @@ void TIA::reset_sprite_position(int& sprite, int hblank_fudge, int fudge) {
 }
 
 void TIA::vsync(uint8_t val) {
-	vsync_mode = val == 2;
+	bool new_vsync_mode = val & 0x02;
+	if (vsync_mode && !new_vsync_mode)
+		ntsc.vsync();
+	vsync_mode = new_vsync_mode;
 }
 
 void TIA::vblank(uint8_t val) {
@@ -199,9 +195,14 @@ void TIA::vblank(uint8_t val) {
 	vblank_mode = val == 2;
 }
 
+void TIA::rsync(uint8_t val) {
+	tia_cycle_num = -3;
+	ntsc.gun_x = -3;
+}
+
 // Sleep the CPU until hblank is (almost) over
 void TIA::wsync(uint8_t val) {
-	cycle_num += cpu_scanline_cycles - (cycle_num % cpu_scanline_cycles);
+	cycle_num += (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
 }
 
 void TIA::handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size) {
@@ -517,10 +518,12 @@ void TIA::audc1(uint8_t val) {}
 TIA::TIA() {
 	dma_region = std::make_shared<DmaRegion>(TIA_START, TIA_END, std::bind(&TIA::dma_read_hook, this, _1), std::bind(&TIA::dma_write_hook, this, _1, _2));
 	tia_cycle_num = tia_cycle_ratio * cycle_num;
+	last_process_cycle_num = cycle_num;
 
 	dma_write_table[0x00] = std::bind(&TIA::vsync, this, _1);
 	dma_write_table[0x01] = std::bind(&TIA::vblank, this, _1);
 	dma_write_table[0x02] = std::bind(&TIA::wsync, this, _1);
+	dma_write_table[0x03] = std::bind(&TIA::rsync, this, _1);
 	dma_write_table[0x04] = std::bind(&TIA::nusiz0, this, _1);
 	dma_write_table[0x05] = std::bind(&TIA::nusiz1, this, _1);
 	dma_write_table[0x06] = std::bind(&TIA::colup0, this, _1);
@@ -571,6 +574,9 @@ TIA::TIA() {
 	dma_read_table[0x35] = std::bind(&TIA::cxm1fb, this);
 	dma_read_table[0x36] = std::bind(&TIA::cxblpf, this);
 	dma_read_table[0x37] = std::bind(&TIA::cxppmm, this);
+
+	for (int i = 0; i < 0x40; i++)
+		dma_write_table[i+0x40] = dma_write_table[i];
 }
 
 void TIA::process_tia() {
@@ -580,6 +586,10 @@ void TIA::process_tia() {
 		dma_val = 0;
 	}
 
-	while(tia_cycle_num != tia_cycle_ratio * cycle_num)
-		process_tia_cycle();
+	for (uint64_t i = 0; i < cycle_num - last_process_cycle_num; i++) {
+		for (int j = 0; j < tia_cycle_ratio; j++)
+			process_tia_cycle();
+	}
+
+	last_process_cycle_num = cycle_num;
 }

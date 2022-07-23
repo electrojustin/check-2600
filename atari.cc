@@ -22,7 +22,9 @@ std::unique_ptr<std::thread> emulation_thread;
 
 void emulate() {
 	while(should_execute) {
-//		dump_regs();
+		printf("Timer: %x\n", pia->timer);
+		printf("Timer cycle counter: %x\n", pia->cycle_counter);
+		dump_regs();
 		execute_next_insn();
 		tia->process_tia();
 		pia->process_pia();

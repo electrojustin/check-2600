@@ -126,14 +126,18 @@ void write_byte(uint16_t addr, uint8_t val) {
 
 void push_byte(uint8_t val) {
 	uint16_t stack_page = stack_region->start_addr & (~(PAGE_SIZE-1));
-	stack_region->write_byte(stack_page + stack_pointer, val);
+
+	// Note that the stack pointer might take us out of the designated stack segment
+	write_byte(stack_page + stack_pointer, val);
 	stack_pointer--;
 }
 
 uint8_t pop_byte() {
 	uint16_t stack_page = stack_region->start_addr & (~(PAGE_SIZE-1));
 	stack_pointer++;
-	uint8_t ret = stack_region->read_byte(stack_page + stack_pointer);
+
+	// Note that the stack pointer might take us out of the designated stack segment
+	uint8_t ret = read_byte(stack_page + stack_pointer);
 
 	return ret;
 }
