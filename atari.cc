@@ -20,11 +20,13 @@ std::shared_ptr<RamRegion> irq_vector = nullptr;
 
 std::unique_ptr<std::thread> emulation_thread;
 
-void emulate() {
+void emulate(bool debug) {
 	while(should_execute) {
-//		printf("Gun X: %d  Gun Y: %d\n", tia->ntsc.gun_x, tia->ntsc.gun_y);
-//		printf("Timer: %x\n", pia->timer);
-//		dump_regs();
+		if (debug) {
+			printf("Gun X: %d  Gun Y: %d\n", tia->ntsc.gun_x, tia->ntsc.gun_y);
+			printf("Timer: %x\n", pia->timer);
+			dump_regs();
+		}
 		execute_next_insn();
 		tia->process_tia();
 		pia->process_pia();
@@ -62,7 +64,7 @@ void load_program_file(const char* filename) {
 	free(rom_backing);
 }
 
-void start_emulation_thread() {
+void start_emulation_thread(bool debug) {
 	should_execute = true;
-	emulation_thread = std::make_unique<std::thread>(emulate);
+	emulation_thread = std::make_unique<std::thread>(emulate, debug);
 }

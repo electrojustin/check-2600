@@ -17,6 +17,6 @@
 
 void load_program_file(const char* filename);
 
-void start_emulation_thread();
+void start_emulation_thread(bool debug);
 
 #endif
