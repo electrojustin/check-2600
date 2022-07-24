@@ -25,10 +25,26 @@ void handle_overflow(int val1, int val2, int result) {
 
 void _adc(std::shared_ptr<Operand> operand) {
 	int carry = get_carry() ? 1 : 0;
-	int result = operand->get_val() + acc + carry;
+	int result;
+	if (!get_decimal()) {
+		result = operand->get_val() + acc + carry;
+		set_carry(result & (~0xFF));
+	} else {
+		int acc_digit0 = acc & 0xF;
+		int acc_digit1 = acc >> 4;
+		int operand_digit0 = operand->get_val() & 0xF;
+		int operand_digit1 = operand->get_val() >> 4;
+		int result_digit0 = acc_digit0 + operand_digit0 + carry;
+		carry = result_digit0 > 9;
+		result_digit0 = result_digit0 % 10;
+		int result_digit1 = acc_digit1 + operand_digit1 + carry;
+		carry = result_digit1 > 9;
+		set_carry(carry);
+		result_digit1 = result_digit1 % 10;
+		result = carry << 8 | result_digit1 << 4 | result_digit0;
+	}
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), acc, result);
-	set_carry(result & (~0xFF));
 	acc = result & 0xFF;
 }
 
@@ -376,10 +392,28 @@ void _rts(std::shared_ptr<Operand> operand) {
 
 void _sbc(std::shared_ptr<Operand> operand) {
 	int carry = get_carry() ? 0 : 1;
-	int result = acc - operand->get_val() - carry;
+	int result;
+	if (!get_decimal()) {
+		result = acc - operand->get_val() - carry;
+		set_carry(!(result & (~0xFF)));
+	} else {
+		int acc_digit0 = acc & 0xF;
+		int acc_digit1 = acc >> 4;
+		int operand_digit0 = operand->get_val() & 0xF;
+		int operand_digit1 = operand->get_val() >> 4;
+		int result_digit0 = acc_digit0 - operand_digit0 - carry;
+		carry = result_digit0 < 0;
+		if (result_digit0 < 0)
+			result_digit0 += 10;
+		int result_digit1 = acc_digit1 - operand_digit1 - carry;
+		carry = result_digit1 < 0;
+		set_carry(!carry);
+		if (result_digit1 < 0)
+			result_digit1 += 10;
+		result = carry << 8 | result_digit1 << 4 | result_digit0;
+	}
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), acc, result);
-	set_carry(!(result & (~0xFF)));
 	acc = result & 0xFF;
 }
 
