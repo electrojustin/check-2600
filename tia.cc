@@ -286,15 +286,17 @@ void TIA::ctrlpf(uint8_t val) {
 }
 
 void TIA::refp0(uint8_t val) {
-	bool new_p0_reflect = val & 0x4;
+	bool new_p0_reflect = val & 0x8;
 	if (new_p0_reflect != player0_reflect)
 		player0_mask = reverse_byte(player0_mask);
+	player0_reflect = new_p0_reflect;
 }
 
 void TIA::refp1(uint8_t val) {
-	bool new_p1_reflect = val & 0x4;
+	bool new_p1_reflect = val & 0x8;
 	if (new_p1_reflect != player1_reflect)
 		player1_mask = reverse_byte(player1_mask);
+	player1_reflect = new_p1_reflect;
 }
 
 void TIA::pf0(uint8_t val) {
@@ -337,7 +339,9 @@ void TIA::resbl(uint8_t val) {
 }
 
 void TIA::grp0(uint8_t val) {
-	val = reverse_byte(val);
+	if (!player0_reflect) {
+		val = reverse_byte(val);
+	}
 
 	if (!player0_mask_delay) {
 		player0_mask = val;
@@ -350,7 +354,9 @@ void TIA::grp0(uint8_t val) {
 }
 
 void TIA::grp1(uint8_t val) {
-	val = reverse_byte(val);
+	if (!player1_reflect) {
+		val = reverse_byte(val);
+	}
 
 	if (!player1_mask_delay) {
 		player1_mask = val;
