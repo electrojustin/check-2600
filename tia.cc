@@ -305,6 +305,7 @@ void TIA::pf0(uint8_t val) {
 }
 
 void TIA::pf1(uint8_t val) {
+	val = reverse_byte(val);
 	playfield_mask &= ~0xFF0;
 	playfield_mask |= ((uint64_t)val) << 4;
 	handle_playfield_mirror();
