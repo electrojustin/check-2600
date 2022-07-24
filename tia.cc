@@ -282,7 +282,7 @@ void TIA::ctrlpf(uint8_t val) {
 
 	handle_playfield_mirror();
 
-	ball_size = 1 << ((playfield_priority >> 4) & 0x03);
+	ball_size = 1 << ((val >> 4) & 0x03);
 }
 
 void TIA::refp0(uint8_t val) {
