@@ -23,10 +23,10 @@ int main(int argc, char** argv) {
 	}
 
 	if (argc == 3) {
-		if (strncmp(argv[1], "--debug", strlen("--debug"))) {
+		if (!strncmp(argv[1], "--debug", strlen("--debug"))) {
 			debug = true;
 			filename = argv[2];
-		} else if (strncmp(argv[2], "--debug", strlen("--debug"))) {
+		} else if (!strncmp(argv[2], "--debug", strlen("--debug"))) {
 			debug = true;
 			filename = argv[1];
 		} else {
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 		filename = argv[1];
 	}
 
-	load_program_file(argv[1]);
+	load_program_file(filename);
 
 	start_emulation_thread(debug);
 
