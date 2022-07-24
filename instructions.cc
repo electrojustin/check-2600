@@ -41,7 +41,7 @@ void _and(std::shared_ptr<Operand> operand) {
 void _asl(std::shared_ptr<Operand> operand) {
 	cycle_num += 2;
 
-	int result = ((acc << operand->get_val()) & 0x7F) | (acc & 0x80);
+	int result = (int)acc << operand->get_val();
 	handle_arithmetic_flags(result);
 	set_carry(result & (~0xFF));
 	acc = result & 0xFF;

@@ -24,7 +24,7 @@ int mod(int a, int b) {
 uint8_t TIA::dma_read_hook(uint16_t addr) {
 	auto read_func = dma_read_table[addr];
 	if (!read_func) {
-		printf("Warning! Invalid DMA read at %x\n", addr);
+		printf("Warning! Invalid DMA read at %x. PC: %x\n", addr, program_counter);
 		return 0;
 	}
 
@@ -34,7 +34,7 @@ uint8_t TIA::dma_read_hook(uint16_t addr) {
 void TIA::dma_write_hook(uint16_t addr, uint8_t val) {
 	auto write_func = dma_write_table[addr];
 	if (!write_func) {
-		printf("Warning! Invalid DMA write at %x\n", addr);
+		printf("Warning! Invalid DMA write at %x. PC: %x\n", addr, program_counter);
 		return;
 	}
 
@@ -614,6 +614,9 @@ TIA::TIA() {
 
 	for (int i = 0; i < 0x40; i++)
 		dma_write_table[i+0x40] = dma_write_table[i];
+
+	for (int i = 0; i < 0x0D; i++)
+		dma_read_table[i] = dma_read_table[i+0x30];
 }
 
 void TIA::process_tia() {
