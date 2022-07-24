@@ -22,8 +22,8 @@ public:
 	const static int visible_columns = 160;
 	const static int visible_scanlines = 192;
 
-	// Period in us for 30Hz refresh
-	const static int refresh_period_us = 33333;
+	// Period in us for 60Hz refresh
+	const static int refresh_period_us = 16666;
 
 	// Electron gun position
 	int gun_x;

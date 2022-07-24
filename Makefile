@@ -1,11 +1,13 @@
-CC=clang -g -pthread
-#CC=clang -O2 -pthread
+CC=clang -O2 -pthread
 INCLUDE=-I/usr/include/qt -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/qt/QtWidgets
 #INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets
 LINK=-lstdc++ -L/usr/lib/x86_64-linux-gnu/ -lQt5Core -lQt5Gui -lQt5Widgets
 ASM=acme
 atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o
 	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o -o atari2600
+debug: CC += -g
+debug: atari2600
+debug: tests
 main.o: main.cc atari.h
 	${CC} ${INCLUDE} -fPIC -c main.cc
 registers.o: registers.h registers.cc
