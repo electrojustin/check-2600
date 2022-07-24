@@ -199,12 +199,11 @@ void TIA::vblank(uint8_t val) {
 void TIA::rsync(uint8_t val) {
 	tia_cycle_num = -3;
 	ntsc.gun_x = -3;
-	rsync_mode = true;
 }
 
 // Sleep the CPU until hblank is (almost) over
 void TIA::wsync(uint8_t val) {
-	cycle_num = last_process_cycle_num + (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
+	cycle_num += (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
 }
 
 void TIA::handle_nusiz(uint8_t val, int& dup_mask, int& scale, int& missile_size) {
@@ -383,23 +382,23 @@ void TIA::enabl(uint8_t val) {
 }
 
 void TIA::hmp0(uint8_t val) {
-	player0_motion = (-((int8_t)val)) / 16;
+	player0_motion = -(((int8_t)(val & 0xF0)) / 16);
 }
 
 void TIA::hmp1(uint8_t val) {
-	player1_motion = (-((int8_t)val)) / 16;
+	player1_motion = -(((int8_t)(val & 0xF0)) / 16);
 }
 
 void TIA::hmm0(uint8_t val) {
-	missile0_motion = (-((int8_t)val)) / 16;
+	missile0_motion = -(((int8_t)(val & 0xF0)) / 16);
 }
 
 void TIA::hmm1(uint8_t val) {
-	missile1_motion = (-((int8_t)val)) / 16;
+	missile1_motion = -(((int8_t)(val & 0xF0)) / 16);
 }
 
 void TIA::hmbl(uint8_t val) {
-	ball_motion = (-((int8_t)val)) / 16;
+	ball_motion = -(((int8_t)(val & 0xF0)) / 16);
 }
 
 void TIA::vdelp0(uint8_t val) {
@@ -433,11 +432,13 @@ void TIA::handle_resmp(int player_scale, int player_x, int& missile_x) {
 }
 
 void TIA::resmp0(uint8_t val) {
-	handle_resmp(player0_scale, player0_x, missile0_x);
+	if (val & 0x02)
+		handle_resmp(player0_scale, player0_x, missile0_x);
 }
 
 void TIA::resmp1(uint8_t val) {
-	handle_resmp(player1_scale, player1_x, missile1_x);
+	if (val & 0x02)
+		handle_resmp(player1_scale, player1_x, missile1_x);
 }
 
 void TIA::hmove(uint8_t val) {
@@ -621,20 +622,16 @@ TIA::TIA() {
 }
 
 void TIA::process_tia() {
+	for (uint64_t i = 0; i < cycle_num - last_process_cycle_num; i++) {
+		for (int j = 0; j < tia_cycle_ratio; j++)
+			process_tia_cycle();
+	}
+
+	last_process_cycle_num = cycle_num;
+
 	if (dma_write_request) {
 		dma_write_request(dma_val);
 		dma_write_request = nullptr;
 		dma_val = 0;
 	}
-
-	if (!rsync_mode) {
-		for (uint64_t i = 0; i < cycle_num - last_process_cycle_num; i++) {
-			for (int j = 0; j < tia_cycle_ratio; j++)
-				process_tia_cycle();
-		}
-	} else {
-		rsync_mode = false;
-	}
-
-	last_process_cycle_num = cycle_num;
 }

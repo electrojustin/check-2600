@@ -14,7 +14,6 @@ class TIA {
 	uint64_t last_process_cycle_num;
 	bool vsync_mode = false;
 	bool vblank_mode = false;
-	bool rsync_mode = false;
 
 	uint8_t background_color = 0;
 
