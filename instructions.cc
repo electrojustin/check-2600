@@ -359,22 +359,40 @@ void _plp(std::shared_ptr<Operand> operand) {
 	flags = pop_byte();
 }
 
-void _rol(std::shared_ptr<Operand> operand) {
+uint8_t rotate_left(uint8_t input) {
 	cycle_num += 2;
 
-	int result = ((acc << operand->get_val()) | (acc >> (8-operand->get_val()))) & 0xFF;
+	int result = input << 1 | get_carry();
 	handle_arithmetic_flags(result);
-	set_carry(result & (~0xFF));
-	acc = result;
+	set_carry(input & 0x80);
+
+	return result & 0xFF;
 }
 
-void _ror(std::shared_ptr<Operand> operand) {
+void _rol_acc(std::shared_ptr<Operand> operand) {
+	acc = rotate_left(acc);
+}
+
+void _rol_memory(std::shared_ptr<Operand> operand) {
+	operand->set_val(rotate_left(operand->get_val()));
+}
+
+uint8_t rotate_right(uint8_t input) {
 	cycle_num += 2;
 
-	int result = ((acc >> operand->get_val()) | (acc << (8-operand->get_val()))) & 0xFF;
+	int result = input >> 1 | (int)get_carry() << 7;
 	handle_arithmetic_flags(result);
-	set_carry(result & (~0xFF));
-	acc = result;
+	set_carry(input & 0x01);
+
+	return result & 0xFF;
+}
+
+void _ror_acc(std::shared_ptr<Operand> operand) {
+	acc = rotate_right(acc);
+}
+
+void _ror_memory(std::shared_ptr<Operand> operand) {
+	operand->set_val(rotate_right(operand->get_val()));
 }
 
 void _rti(std::shared_ptr<Operand> operand) {
@@ -528,15 +546,15 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
         _bit,
         _and,
-        _rol,
+        _rol_memory,
         nullptr,
         _plp,
         _and,
-        _rol,
+        _rol_acc,
         nullptr,
         _bit,
         _and,
-        _rol,
+        _rol_memory,
         nullptr,
         _bmi,
         _and,
@@ -544,7 +562,7 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
         nullptr,
         _and,
-        _rol,
+        _rol_memory,
         nullptr,
         _sec,
         _and,
@@ -552,7 +570,7 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
         nullptr,
         _and,
-        _rol,
+        _rol_memory,
         nullptr,
         _rti,
         _eor,
@@ -592,15 +610,15 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
         nullptr,
         _adc,
-        _ror,
+        _ror_memory,
         nullptr,
         _pla,
         _adc,
-        _ror,
+        _ror_acc,
         nullptr,
         _jmp,
         _adc,
-        _ror,
+        _ror_memory,
         nullptr,
         _bvs,
         _adc,
@@ -608,7 +626,7 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
         nullptr,
         _adc,
-        _ror,
+        _ror_memory,
         nullptr,
         _sei,
         _adc,
@@ -616,7 +634,7 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
         nullptr,
         _adc,
-        _ror,
+        _ror_memory,
         nullptr,
         nullptr,
         _sta,
