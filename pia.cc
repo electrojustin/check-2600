@@ -30,7 +30,7 @@ uint8_t PIA::dma_read_hook(uint16_t addr) {
 		case 0x0281:
 			return 0;
 		case 0x0282:
-			return 0xFF;
+			return 0x3F;
 		case 0x0283:
 			return 0;
 		case 0x0284:

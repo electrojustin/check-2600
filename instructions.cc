@@ -304,7 +304,7 @@ void _lsr(std::shared_ptr<Operand> operand) {
 
 	int result = acc >> operand->get_val();
 	handle_arithmetic_flags(result);
-	set_carry(result & (~0xFF));
+	set_carry(((uint16_t)acc << (8-operand->get_val())) & 0xFF);
 	acc = result & 0xFF;
 }
 
