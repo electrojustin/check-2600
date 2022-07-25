@@ -3,7 +3,7 @@ INCLUDE=-I/usr/include/qt -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/us
 #INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets
 LINK=-lstdc++ -L/usr/lib/x86_64-linux-gnu/ -lQt5Core -lQt5Gui -lQt5Widgets
 ASM=acme
-atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o
+atari2600: sound_files main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o
 	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o -o atari2600
 debug: CC += -g
 debug: atari2600
@@ -34,6 +34,8 @@ pia.o: pia.cc pia.h registers.h memory.h input.h
 	${CC} ${INCLUDE} -c pia.cc
 input.o: input.cc input.h
 	${CC} ${INCLUDE} -c input.cc
+sound_files:
+	cd sounds && python3 gen_sounds.py && cd ..
 tests: tests/fib.bin tests/scanline_test.bin tests/playfield_test.bin tests/player_test.bin tests/nusiz_test.bin
 tests/fib.bin: tests/fib.asm
 	${ASM} -o tests/fib.bin tests/fib.asm

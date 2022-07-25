@@ -21,6 +21,7 @@ void NTSC::vsync() {
 
 	auto curr_time = std::chrono::high_resolution_clock::now();
 	auto time_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_buf_swap);
+	printf("Frame latency: %lu us\n", time_in_microseconds.count());
 	if (time_in_microseconds.count() < refresh_period_us) {
 		usleep(refresh_period_us - time_in_microseconds.count());
 	} else {
