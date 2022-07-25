@@ -4,6 +4,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+// Note that a display should also handle input and sound
 class Display {
 public:
 	virtual ~Display() = default;

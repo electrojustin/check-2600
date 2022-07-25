@@ -1,10 +1,12 @@
 #include "qt_display.h"
 
 #include <QKeyEvent>
+#include <stdio.h>
 
 #include "atari.h"
 #include "registers.h"
 #include "input.h"
+#include "sound.h"
 
 // NTSC color palette
 // Stored in BGRA format
@@ -147,6 +149,42 @@ void QtDisplay::convert_framebufs() {
 	}
 }
 
+void QtDisplay::handle_sound_channel_update(std::shared_ptr<QSoundEffect>& channel, 
+					    int& channel_index,
+					    int& prev_volume,
+					    int volume,
+					    int freq,
+					    int noise_control) {
+	int new_channel_index = (int)freq << 4 | noise_control;
+	if (new_channel_index != channel_index ||
+	    prev_volume != volume) {
+		if (!volume || !noise_control) {
+			channel->setVolume(0.0);
+		} else {
+			if (new_channel_index != channel_index || !prev_volume) {
+				if (channel)
+					channel->setVolume(0.0);
+				char filename[256];
+				freq = 30000/(freq+1);
+				snprintf(filename, 256, "sounds/%dhz_waveform%d.wav", freq, noise_control);
+				channel->setSource(QUrl::fromLocalFile(filename));
+				channel->play();
+			}
+
+			//channel->setVolume(0.0625 * volume);
+			channel->setVolume(1.0);
+		}
+
+		prev_volume = volume;
+		channel_index = new_channel_index;
+	}
+}
+
+void QtDisplay::handle_sound_updates() {
+	handle_sound_channel_update(channel0, channel0_index, prev_volume0, volume0, freq0, noise_control0);
+	handle_sound_channel_update(channel1, channel1_index, prev_volume1, volume1, freq1, noise_control1);
+}
+
 QtDisplay::QtDisplay(int width, int height, int scale) : QWidget(nullptr) {
 	this->width = width;
 	this->height = height;
@@ -163,6 +201,9 @@ QtDisplay::QtDisplay(int width, int height, int scale) : QWidget(nullptr) {
 	needs_repaint = false;
 
 	startTimer(5);
+
+	channel0 = std::make_shared<QSoundEffect>();
+	channel1 = std::make_shared<QSoundEffect>();
 }
 
 QtDisplay::~QtDisplay() {
@@ -192,6 +233,8 @@ void QtDisplay::paintEvent(QPaintEvent* e) {
 
 void QtDisplay::timerEvent(QTimerEvent* e) {
 	Q_UNUSED(e);
+
+	handle_sound_updates();
 
 	if (needs_repaint)
 		this->repaint();

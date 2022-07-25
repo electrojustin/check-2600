@@ -5,6 +5,7 @@
 #include "atari.h"
 #include "registers.h"
 #include "input.h"
+#include "sound.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -545,13 +546,29 @@ uint8_t TIA::inpt5() {
 	return ~(uint8_t)player1_fire << 7;
 }
 
-// TODO: Add audio support
-void TIA::audv0(uint8_t val) {}
-void TIA::audv1(uint8_t val) {}
-void TIA::audf0(uint8_t val) {}
-void TIA::audf1(uint8_t val) {}
-void TIA::audc0(uint8_t val) {}
-void TIA::audc1(uint8_t val) {}
+void TIA::audv0(uint8_t val) {
+	volume0 = val;
+}
+
+void TIA::audv1(uint8_t val) {
+	volume1 = val;
+}
+
+void TIA::audf0(uint8_t val) {
+	freq0 = val;
+}
+
+void TIA::audf1(uint8_t val) {
+	freq1 = val;
+}
+
+void TIA::audc0(uint8_t val) {
+	noise_control0 = val;
+}
+
+void TIA::audc1(uint8_t val) {
+	noise_control1 = val;
+}
 
 
 TIA::TIA() {
