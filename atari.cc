@@ -14,10 +14,6 @@
 std::unique_ptr<TIA> tia;
 std::unique_ptr<PIA> pia;
 
-std::shared_ptr<RamRegion> ram = nullptr;
-std::shared_ptr<RomRegion> rom = nullptr;
-std::shared_ptr<RamRegion> irq_vector = nullptr;
-
 std::unique_ptr<std::thread> emulation_thread;
 
 void emulate(bool debug) {
@@ -49,13 +45,16 @@ void load_program_file(const char* filename) {
 	tia = std::make_unique<TIA>();
 	pia = std::make_unique<PIA>();
 
-	ram = std::make_shared<RamRegion>(RAM_START, RAM_END);
-	rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
+	auto ram = std::make_shared<RamRegion>(RAM_START, RAM_END);
+	auto rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
+
+	auto ram_mirror = std::make_shared<MirrorRegion>(RAM_START+0x100, RAM_END+0x100, ram);
 
 	memory_regions.push_back(ram);
 	memory_regions.push_back(rom);
 	memory_regions.push_back(tia->get_dma_region());
 	memory_regions.push_back(pia->get_dma_region());
+	memory_regions.push_back(ram_mirror);
 
 	stack_region = ram;
 

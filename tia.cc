@@ -605,26 +605,28 @@ TIA::TIA() {
 	dma_write_table[0x2B] = std::bind(&TIA::hmclr, this, _1);
 	dma_write_table[0x2C] = std::bind(&TIA::cxclr, this, _1);
 
-	dma_read_table[0x30] = std::bind(&TIA::cxm0p, this);
-	dma_read_table[0x31] = std::bind(&TIA::cxm1p, this);
-	dma_read_table[0x32] = std::bind(&TIA::cxp0fb, this);
-	dma_read_table[0x33] = std::bind(&TIA::cxp1fb, this);
-	dma_read_table[0x34] = std::bind(&TIA::cxm0fb, this);
-	dma_read_table[0x35] = std::bind(&TIA::cxm1fb, this);
-	dma_read_table[0x36] = std::bind(&TIA::cxblpf, this);
-	dma_read_table[0x37] = std::bind(&TIA::cxppmm, this);
-	dma_read_table[0x38] = std::bind(&TIA::inpt0, this);
-	dma_read_table[0x39] = std::bind(&TIA::inpt1, this);
-	dma_read_table[0x3A] = std::bind(&TIA::inpt2, this);
-	dma_read_table[0x3B] = std::bind(&TIA::inpt3, this);
-	dma_read_table[0x3C] = std::bind(&TIA::inpt4, this);
-	dma_read_table[0x3D] = std::bind(&TIA::inpt5, this);
+	dma_read_table[0x00] = std::bind(&TIA::cxm0p, this);
+	dma_read_table[0x01] = std::bind(&TIA::cxm1p, this);
+	dma_read_table[0x02] = std::bind(&TIA::cxp0fb, this);
+	dma_read_table[0x03] = std::bind(&TIA::cxp1fb, this);
+	dma_read_table[0x04] = std::bind(&TIA::cxm0fb, this);
+	dma_read_table[0x05] = std::bind(&TIA::cxm1fb, this);
+	dma_read_table[0x06] = std::bind(&TIA::cxblpf, this);
+	dma_read_table[0x07] = std::bind(&TIA::cxppmm, this);
+	dma_read_table[0x08] = std::bind(&TIA::inpt0, this);
+	dma_read_table[0x09] = std::bind(&TIA::inpt1, this);
+	dma_read_table[0x0A] = std::bind(&TIA::inpt2, this);
+	dma_read_table[0x0B] = std::bind(&TIA::inpt3, this);
+	dma_read_table[0x0C] = std::bind(&TIA::inpt4, this);
+	dma_read_table[0x0D] = std::bind(&TIA::inpt5, this);
 
 	for (int i = 0; i < 0x40; i++)
 		dma_write_table[i+0x40] = dma_write_table[i];
 
-	for (int i = 0; i < 0x0D; i++)
-		dma_read_table[i] = dma_read_table[i+0x30];
+	for (int i = 0x10; i < 0x80; i += 0x10) {
+		for (int j = 0; j < 0x10; j++)
+			dma_read_table[j+i] = dma_read_table[j];
+	}
 }
 
 void TIA::process_tia() {

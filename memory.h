@@ -58,6 +58,16 @@ public:
 	void write_byte(uint16_t addr, uint8_t val) override;
 };
 
+class MirrorRegion : public MemoryRegion {
+private:
+	std::shared_ptr<MemoryRegion> delegate;
+
+public:
+	MirrorRegion(uint16_t start_addr, uint16_t end_addr, std::shared_ptr<MemoryRegion> delegate);
+	uint8_t read_byte(uint16_t addr) override;
+	void write_byte(uint16_t addr, uint8_t val) override;
+};
+
 
 extern std::vector<std::shared_ptr<MemoryRegion>> memory_regions;
 extern std::shared_ptr<MemoryRegion> stack_region;

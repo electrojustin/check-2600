@@ -102,6 +102,20 @@ void DmaRegion::write_byte(uint16_t addr, uint8_t val) {
 	write_hook(addr, val);
 }
 
+MirrorRegion::MirrorRegion(uint16_t start_addr, uint16_t end_addr, std::shared_ptr<MemoryRegion> delegate) {
+	this->delegate = delegate;
+	this->start_addr = start_addr;
+	this->end_addr = end_addr;
+}
+
+uint8_t MirrorRegion::read_byte(uint16_t addr) {
+	return delegate->read_byte(addr - start_addr + delegate->start_addr);
+}
+
+void MirrorRegion::write_byte(uint16_t addr, uint8_t val) {
+	delegate->write_byte(addr - start_addr + delegate->start_addr, val);
+}
+
 
 uint8_t read_byte(uint16_t addr) {
 	auto region = get_region_for_addr(addr);
