@@ -103,9 +103,9 @@ void _beq(std::shared_ptr<Operand> operand) {
 }
 
 void _bit(std::shared_ptr<Operand> operand) {
-	set_negative(operand->get_val() & 0x40);
-	set_overflow(operand->get_val() & 0x20);
-	set_zero(operand->get_val() & acc);
+	set_negative(operand->get_val() & 0x80);
+	set_overflow(operand->get_val() & 0x40);
+	set_zero(!(operand->get_val() & acc));
 }
 
 void _bmi(std::shared_ptr<Operand> operand) {
