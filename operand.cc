@@ -101,7 +101,7 @@ public:
 };
 
 class Indirect : public Operand {
-	uint8_t absolute_addr;
+	uint16_t absolute_addr;
 
 public:
 	Indirect(uint16_t absolute_addr) {
