@@ -3,8 +3,8 @@ INCLUDE=-I/usr/include/qt -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/us
 #INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtMultimedia
 LINK=-lstdc++ -L/usr/lib/x86_64-linux-gnu/ -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Multimedia
 ASM=acme
-atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o
-	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o -o atari2600
+atari2600: main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o jit_arena.o jit.o
+	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o jit_arena.o jit.o -o atari2600
 debug: CC += -g
 debug: atari2600
 debug: tests
@@ -34,6 +34,12 @@ pia.o: pia.cc pia.h registers.h memory.h input.h
 	${CC} ${INCLUDE} -c pia.cc
 input.o: input.cc input.h
 	${CC} ${INCLUDE} -c input.cc
+jit_arena.o: jit_arena.cc jit_arena.h
+	${CC} ${INCLUDE} -c jit_arena.cc
+jit.o: jit.cc jit.h jit_arena.h memory.h operand.h instructions.h registers.h
+	${CC} ${INCLUDE} -c jit.cc
+sound.o: sound.cc sound.h
+	${CC} ${INCLUDE} -c sound.cc
 sound_files:
 	cd sounds && python3 gen_sounds.py && cd ..
 tests: tests/fib.bin tests/scanline_test.bin tests/playfield_test.bin tests/player_test.bin tests/nusiz_test.bin

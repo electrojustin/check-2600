@@ -23,6 +23,10 @@ public:
 
 	virtual uint8_t read_byte(uint16_t addr) = 0;
 	virtual void write_byte(uint16_t addr, uint8_t val) = 0;
+
+	virtual bool is_read_only() {
+		return false;
+	}
 };
 
 class RamRegion : public MemoryRegion {
@@ -45,6 +49,10 @@ public:
 	~RomRegion();
 	uint8_t read_byte(uint16_t addr) override;
 	void write_byte(uint16_t addr, uint8_t val) override;
+
+	bool is_read_only() override {
+		return true;
+	}
 };
 
 class DmaRegion : public MemoryRegion {
@@ -85,5 +93,8 @@ uint16_t pop_word();
 // Cache control. Useful for caching parsed instructions
 bool is_dirty_page(uint16_t addr);
 void mark_page_clean(uint16_t addr);
+
+// Useful for JIT
+bool is_read_only(uint16_t addr);
 
 #endif

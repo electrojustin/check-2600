@@ -17,6 +17,11 @@ std::unique_ptr<PIA> pia;
 std::unique_ptr<std::thread> emulation_thread;
 
 void emulate(bool debug) {
+	additional_callback = [&]() {
+		tia->process_tia();
+		pia->process_pia();
+	};
+
 	while(should_execute) {
 		if (debug) {
 			printf("Gun X: %d  Gun Y: %d\n", tia->ntsc.gun_x, tia->ntsc.gun_y);
@@ -24,8 +29,6 @@ void emulate(bool debug) {
 			dump_regs();
 		}
 		execute_next_insn();
-		tia->process_tia();
-		pia->process_pia();
 	}
 }
 

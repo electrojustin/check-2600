@@ -23,7 +23,7 @@ void handle_overflow(int val1, int val2, int result) {
 
 // Note that we try to increment the cycle counter before evaluating the operand to accurately read timers
 
-void _adc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _adc(Operand* operand) {
 	int carry = get_carry() ? 1 : 0;
 	int result;
 	if (!get_decimal()) {
@@ -48,13 +48,13 @@ void _adc(std::shared_ptr<Operand> operand) {
 	acc = result & 0xFF;
 }
 
-void _and(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _and(Operand* operand) {
 	int result = operand->get_val() & acc;
 	handle_arithmetic_flags(result);
 	acc = result & 0xFF;
 }
 
-void _asl(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _asl(Operand* operand) {
 	cycle_num += 2;
 
 	int result = (int)acc << operand->get_val();
@@ -63,7 +63,7 @@ void _asl(std::shared_ptr<Operand> operand) {
 	acc = result & 0xFF;
 }
 
-void _bcc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bcc(Operand* operand) {
 	cycle_num += 2;
 
 	if (!get_carry()) {
@@ -76,7 +76,7 @@ void _bcc(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _bcs(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bcs(Operand* operand) {
 	cycle_num += 2;
 
 	if (get_carry()) {
@@ -89,7 +89,7 @@ void _bcs(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _beq(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _beq(Operand* operand) {
 	cycle_num += 2;
 
 	if (get_zero()) {
@@ -102,13 +102,13 @@ void _beq(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _bit(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bit(Operand* operand) {
 	set_negative(operand->get_val() & 0x80);
 	set_overflow(operand->get_val() & 0x40);
 	set_zero(!(operand->get_val() & acc));
 }
 
-void _bmi(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bmi(Operand* operand) {
 	cycle_num += 2;
 
 	if (get_negative()) {
@@ -121,7 +121,7 @@ void _bmi(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _bne(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bne(Operand* operand) {
 	cycle_num += 2;
 
 	if (!get_zero()) {
@@ -134,7 +134,7 @@ void _bne(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _bpl(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bpl(Operand* operand) {
 	cycle_num += 2;
 
 	if (!get_negative()) {
@@ -147,7 +147,7 @@ void _bpl(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _brk(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _brk(Operand* operand) {
 	int irq_vector = read_word(irq_vector_addr);
 	if (!irq_vector) {
 		should_execute = false;
@@ -165,7 +165,7 @@ void _brk(std::shared_ptr<Operand> operand) {
 	set_break(true);
 }
 
-void _bvc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bvc(Operand* operand) {
 	cycle_num += 2;
 
 	if (!get_overflow()) {
@@ -178,7 +178,7 @@ void _bvc(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _bvs(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _bvs(Operand* operand) {
 	cycle_num += 2;
 
 	if (get_overflow()) {
@@ -191,52 +191,52 @@ void _bvs(std::shared_ptr<Operand> operand) {
 	}
 }
 
-void _clc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _clc(Operand* operand) {
 	cycle_num += 2;
 
 	set_carry(false);
 }
 
-void _cld(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _cld(Operand* operand) {
 	cycle_num += 2;
 
 	set_decimal(false);
 }
 
-void _cli(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _cli(Operand* operand) {
 	cycle_num += 2;
 
 	set_interrupt_enable(false);
 }
 
-void _clv(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _clv(Operand* operand) {
 	cycle_num += 2;
 
 	set_overflow(false);
 }
 
-void _cmp(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _cmp(Operand* operand) {
 	int result = acc - operand->get_val();
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), acc, result);
 	set_carry(!(result & (~0xFF)));
 }
 
-void _cpx(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _cpx(Operand* operand) {
 	int result = index_x - operand->get_val();
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), index_x, result);
 	set_carry(!(result & (~0xFF)));
 }
 
-void _cpy(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _cpy(Operand* operand) {
 	int result = index_y - operand->get_val();
 	handle_arithmetic_flags(result);
 	handle_overflow(operand->get_val(), index_y, result);
 	set_carry(!(result & (~0xFF)));
 }
 
-void _dec(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _dec(Operand* operand) {
 	cycle_num += 2;
 
 	int result = operand->get_val() - 1;
@@ -244,27 +244,27 @@ void _dec(std::shared_ptr<Operand> operand) {
 	operand->set_val(result & 0xFF);
 }
 
-void _dex(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _dex(Operand* operand) {
 	cycle_num += 2;
 
 	index_x--;
 	handle_arithmetic_flags(index_x);
 }
 
-void _dey(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _dey(Operand* operand) {
 	cycle_num += 2;
 
 	index_y--;
 	handle_arithmetic_flags(index_y);
 }
 
-void _eor(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _eor(Operand* operand) {
 	int result = operand->get_val() ^ acc;
 	handle_arithmetic_flags(result);
 	acc = result;
 }
 
-void _inc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _inc(Operand* operand) {
 	cycle_num += 2;
 
 	int result = operand->get_val() + 1;
@@ -272,27 +272,27 @@ void _inc(std::shared_ptr<Operand> operand) {
 	operand->set_val(result & 0xFF);
 }
 
-void _inx(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _inx(Operand* operand) {
 	cycle_num += 2;
 
 	index_x++;
 	handle_arithmetic_flags(index_x);
 }
 
-void _iny(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _iny(Operand* operand) {
 	cycle_num += 2;
 
 	index_y++;
 	handle_arithmetic_flags(index_y);
 }
 
-void _jmp(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _jmp(Operand* operand) {
 	cycle_num--; // Weird hack for this particular instruction.
 
 	program_counter = operand->get_val() - operand->get_insn_len();
 }
 
-void _jsr(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _jsr(Operand* operand) {
 	cycle_num += 2;
 
 	// A quirk in the 6502 stores return address - 1 for JSR.
@@ -300,22 +300,22 @@ void _jsr(std::shared_ptr<Operand> operand) {
 	program_counter = operand->get_val() - operand->get_insn_len();
 }
 
-void _lda(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _lda(Operand* operand) {
 	acc = operand->get_val();
 	handle_arithmetic_flags(acc);
 }
 
-void _ldx(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _ldx(Operand* operand) {
 	index_x = operand->get_val();
 	handle_arithmetic_flags(index_x);
 }
 
-void _ldy(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _ldy(Operand* operand) {
 	index_y = operand->get_val();
 	handle_arithmetic_flags(index_y);
 }
 
-void _lsr(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _lsr(Operand* operand) {
 	cycle_num += 2;
 
 	int result = acc >> operand->get_val();
@@ -324,36 +324,36 @@ void _lsr(std::shared_ptr<Operand> operand) {
 	acc = result & 0xFF;
 }
 
-void _nop(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _nop(Operand* operand) {
 	cycle_num += 2;
 }
 
-void _ora(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _ora(Operand* operand) {
 	int result = acc | operand->get_val();
 	handle_arithmetic_flags(result);
 	acc = result & 0xFF;
 }
 
-void _pha(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _pha(Operand* operand) {
 	cycle_num += 3;
 
 	push_byte(acc);
 }
 
-void _php(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _php(Operand* operand) {
 	cycle_num += 3;
 
 	push_byte(flags);
 }
 
-void _pla(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _pla(Operand* operand) {
 	cycle_num += 4;
 
 	acc = pop_byte();
 	handle_arithmetic_flags(acc);
 }
 
-void _plp(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _plp(Operand* operand) {
 	cycle_num += 4;
 
 	flags = pop_byte();
@@ -369,11 +369,11 @@ uint8_t rotate_left(uint8_t input) {
 	return result & 0xFF;
 }
 
-void _rol_acc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _rol_acc(Operand* operand) {
 	acc = rotate_left(acc);
 }
 
-void _rol_memory(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _rol_memory(Operand* operand) {
 	operand->set_val(rotate_left(operand->get_val()));
 }
 
@@ -387,28 +387,28 @@ uint8_t rotate_right(uint8_t input) {
 	return result & 0xFF;
 }
 
-void _ror_acc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _ror_acc(Operand* operand) {
 	acc = rotate_right(acc);
 }
 
-void _ror_memory(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _ror_memory(Operand* operand) {
 	operand->set_val(rotate_right(operand->get_val()));
 }
 
-void _rti(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _rti(Operand* operand) {
 	cycle_num += 6;
 
 	flags = pop_byte();
 	program_counter = pop_word() - operand->get_insn_len();
 }
 
-void _rts(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _rts(Operand* operand) {
 	cycle_num += 6;
 
 	program_counter = pop_word() - operand->get_insn_len() + 1;
 }
 
-void _sbc(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _sbc(Operand* operand) {
 	int carry = get_carry() ? 0 : 1;
 	int result;
 	if (!get_decimal()) {
@@ -435,79 +435,79 @@ void _sbc(std::shared_ptr<Operand> operand) {
 	acc = result & 0xFF;
 }
 
-void _sec(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _sec(Operand* operand) {
 	cycle_num += 2;
 
 	set_carry(true);
 }
 
-void _sed(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _sed(Operand* operand) {
 	cycle_num += 2;
 
 	set_decimal(true);
 }
 
-void _sei(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _sei(Operand* operand) {
 	cycle_num += 2;
 
 	set_interrupt_enable(true);
 }
 
-void _sta(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _sta(Operand* operand) {
 	operand->set_val(acc);
 }
 
-void _stx(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _stx(Operand* operand) {
 	operand->set_val(index_x);
 }
 
-void _sty(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _sty(Operand* operand) {
 	operand->set_val(index_y);
 }
 
-void _tax(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _tax(Operand* operand) {
 	cycle_num += 2;
 
 	index_x = acc;
 	handle_arithmetic_flags(index_x);
 }
 
-void _tay(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _tay(Operand* operand) {
 	cycle_num += 2;
 
 	index_y = acc;
 	handle_arithmetic_flags(index_y);
 }
 
-void _tsx(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _tsx(Operand* operand) {
 	cycle_num += 2;
 
 	stack_pointer = index_x;
 	handle_arithmetic_flags(stack_pointer);
 }
 
-void _txa(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _txa(Operand* operand) {
 	cycle_num += 2;
 
 	acc = index_x;
 	handle_arithmetic_flags(acc);
 }
 
-void _txs(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _txs(Operand* operand) {
 	cycle_num += 2;
 
 	stack_pointer = index_x;
 	handle_arithmetic_flags(stack_pointer);
 }
 
-void _tya(std::shared_ptr<Operand> operand) {
+__attribute__((sysv_abi, noinline)) void _tya(Operand* operand) {
 	cycle_num += 2;
 
 	acc = index_y;
 	handle_arithmetic_flags(acc);
 }
 
-std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
+void (*opcode_table[256])(Operand*) = {
         _brk,
         _ora,
         nullptr,
@@ -766,7 +766,7 @@ std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
         nullptr,
 };
 
-std::function<void(std::shared_ptr<Operand>)> get_insn(uint8_t opcode, bool should_succeed) {
+void (*get_insn(uint8_t opcode, bool should_succeed))(Operand*) {
 	auto ret = opcode_table[opcode];
 	if (!ret && should_succeed) {
 		printf("Error! Invalid opcode %x\n", opcode);
@@ -774,4 +774,12 @@ std::function<void(std::shared_ptr<Operand>)> get_insn(uint8_t opcode, bool shou
 	}
 
 	return ret;
+}
+
+bool is_branch(uint8_t opcode) {
+	if (!(opcode & 0x0F)) {
+		return opcode != 0xA0 && opcode != 0xC0 && opcode != 0xE0;
+	} else {
+		return opcode == 0x4C || opcode == 0x6C;
+	}
 }

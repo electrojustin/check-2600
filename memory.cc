@@ -186,3 +186,7 @@ bool is_dirty_page(uint16_t addr) {
 void mark_page_clean(uint16_t addr) {
 	dirty_pages[addr >> 8] = false;
 }
+
+bool is_read_only(uint16_t addr) {
+	return get_region_for_addr(addr)->is_read_only();
+}

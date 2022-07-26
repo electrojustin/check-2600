@@ -7,10 +7,15 @@
 #include "instructions.h"
 #include "registers.h"
 #include "memory.h"
+#include "jit.h"
 
 bool should_execute;
 
 std::unordered_map<uint16_t, std::function<void()>> instruction_cache;
+
+std::function<void(void)> additional_callback = nullptr;
+
+Jit jit;
 
 int cache_insn(uint16_t addr, bool should_succeed) {
 	if (instruction_cache.count(addr))
@@ -31,7 +36,7 @@ int cache_insn(uint16_t addr, bool should_succeed) {
 	auto exec_step = [=]() {
 		// Note that we try to increment the cycle counter before evaluating the operand to accurately read timers
 		cycle_num += operand->get_cycle_penalty();
-		insn(operand);
+		insn(operand.get());
 		program_counter += operand->get_insn_len();
 	};
 
@@ -64,15 +69,30 @@ void invalidate_page(uint16_t page) {
 	mark_page_clean(page);
 }
 
+void trampoline(void (*jit_entry)()) {
+	asm volatile("pushq %%rax\n"
+		     "callq *%0\n"
+		     "popq %%rax\n"
+		     :
+		     : "r" (jit_entry));
+}
+
 void execute_next_insn() {
-	if (instruction_cache.count(program_counter)) {
-		if (is_dirty_page(program_counter)) {
-			invalidate_page(program_counter);
+	void* jit_entry = jit.get_entry(program_counter);
+	if (jit_entry) {
+		trampoline((void (*)())jit_entry);
+	} else {
+		if (instruction_cache.count(program_counter)) {
+			if (is_dirty_page(program_counter)) {
+				invalidate_page(program_counter);
+				parse_page(program_counter);
+			}
+		} else {
 			parse_page(program_counter);
 		}
-	} else {
-		parse_page(program_counter);
-	}
 
-	instruction_cache.at(program_counter)();
+		instruction_cache.at(program_counter)();
+
+		additional_callback();
+	}
 }
