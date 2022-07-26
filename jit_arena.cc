@@ -38,13 +38,17 @@ void JitArena::resize() {
 	mapping = new_mapping;
 }
 
-void* JitArena::allocate(uint32_t alloc_size) {
+uint32_t JitArena::allocate(uint32_t alloc_size) {
 	alloc_size = ALIGN(alloc_size, 4);
 
 	while (next_alloc_ptr + alloc_size > curr_size)
 		resize();
 
-	void* ret = (void*)((uint8_t*)mapping + next_alloc_ptr);
+	uint32_t ret = next_alloc_ptr;
 	next_alloc_ptr += alloc_size;
 	return ret;
+}
+
+void* JitArena::get_base() {
+	return mapping;
 }

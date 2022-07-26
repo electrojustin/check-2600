@@ -12,7 +12,7 @@
 class Jit {
 private:
 	JitArena jit_arena;
-	std::unordered_map<uint16_t, void*> program_counter_map;
+	std::unordered_map<uint16_t, uint32_t> program_counter_map;
 	std::unordered_map<uint16_t, std::shared_ptr<Operand>> operand_bank; // Keeps the shared pointers from freeing our operands
 	std::unordered_map<uint16_t, void(*)(Operand*)> insn_bank;
 

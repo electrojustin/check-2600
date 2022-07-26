@@ -74,7 +74,8 @@ void trampoline(void (*jit_entry)()) {
 		     "callq *%0\n"
 		     "popq %%rax\n"
 		     :
-		     : "r" (jit_entry));
+		     : "r" (jit_entry)
+		     : "rax");
 }
 
 void execute_next_insn() {

@@ -16,7 +16,10 @@ public:
 	JitArena(uint32_t init_size=65536);
 	~JitArena();
 
-	void* allocate(uint32_t alloc_size);
+	// Note that we return allocations as the offset into the mapping rather than the pointer itself.
+	// This is because dynamic resizing means the raw pointer address might change.
+	uint32_t allocate(uint32_t alloc_size);
+	void* get_base();
 };
 
 #endif

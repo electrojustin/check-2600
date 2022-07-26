@@ -49,10 +49,11 @@ void Jit::generate_code(uint16_t addr) {
 		return;
 
 	uint32_t codegen_size = num_insn*66+1;
-	uint8_t* codegen_alloc = (uint8_t*)jit_arena.allocate(codegen_size);
+	uint32_t codegen_offset = jit_arena.allocate(codegen_size);
+	uint8_t* codegen_alloc = codegen_offset + (uint8_t*)jit_arena.get_base();
 
 	for (int i = 0; i < num_insn; i++) {
-		program_counter_map[addr] = (void*)codegen_alloc;
+		program_counter_map[addr] = codegen_offset;
 
 		// movabs <operand ptr>, %rdi
 		*codegen_alloc = 0x48;
@@ -121,6 +122,7 @@ void Jit::generate_code(uint16_t addr) {
 		codegen_alloc++;
 
 		addr += operand_bank[addr]->get_insn_len();
+		codegen_offset += 66;
 	}
 
 	// ret
@@ -129,12 +131,12 @@ void Jit::generate_code(uint16_t addr) {
 
 void* Jit::get_entry(uint16_t program_counter) {
 	if (program_counter_map.count(program_counter))
-		return program_counter_map[program_counter];
+		return (void*)(program_counter_map[program_counter] + (uint8_t*)jit_arena.get_base());
 
 	generate_code(program_counter);
 
 	if (program_counter_map.count(program_counter)) {
-		return program_counter_map[program_counter];
+		return (void*)(program_counter_map[program_counter] + (uint8_t*)jit_arena.get_base());
 	} else {
 		return nullptr;
 	}
