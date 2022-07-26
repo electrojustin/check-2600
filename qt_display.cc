@@ -171,8 +171,7 @@ void QtDisplay::handle_sound_channel_update(std::shared_ptr<QSoundEffect>& chann
 				channel->play();
 			}
 
-			//channel->setVolume(0.0625 * volume);
-			channel->setVolume(1.0);
+			channel->setVolume(0.0625 * volume);
 		}
 
 		prev_volume = volume;

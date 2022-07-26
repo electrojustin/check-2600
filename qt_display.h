@@ -21,7 +21,7 @@ class QtDisplay : public Display, public QWidget {
 	std::atomic<bool> needs_repaint;
 
 	std::shared_ptr<QSoundEffect> channel0 = nullptr;
-	int channel0_index = 0;
+	int channel0_index = 0; // Combo of freq and noise control to know when to change sounds.
 	int prev_volume0 = 0;
 	std::shared_ptr<QSoundEffect> channel1 = nullptr;
 	int channel1_index = 0;
