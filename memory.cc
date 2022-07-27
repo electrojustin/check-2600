@@ -186,3 +186,20 @@ bool is_dirty_page(uint16_t addr) {
 void mark_page_clean(uint16_t addr) {
 	dirty_pages[addr >> 8] = false;
 }
+
+void dump_memory() {
+	printf("RAM:\n");
+	printf("  ");
+	for (int low_nibble = 0; low_nibble <= 0xF; low_nibble++) {
+		printf("%x  ", low_nibble);
+	}
+	printf("\n");
+	for (int high_nibble = 0x8; high_nibble <= 0xF; high_nibble++) {
+		printf("%x ", high_nibble);
+		for (int low_nibble = 0; low_nibble <= 0xF; low_nibble++) {
+			printf("%02x ", read_byte(high_nibble << 4 | low_nibble));
+		}
+		printf("\n");
+	}
+	printf("\n");
+}

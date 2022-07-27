@@ -107,3 +107,9 @@ void PIA::process_pia() {
 
 	last_process_cycle_num = cycle_num;
 }
+
+void PIA::dump_pia() {
+	printf("Timer: %d\n", timer);
+	printf("Interval: %d\n", interval);
+	printf("Next tick: %d cycles\n", interval - cycle_counter);
+}

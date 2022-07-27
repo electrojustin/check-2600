@@ -191,6 +191,8 @@ public:
 	}
 
 	void process_tia();
+
+	void dump_tia();
 };
 
 #endif

@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 enum IndexMode {
 	no_indexing,
@@ -38,6 +39,12 @@ public:
 	int get_cycle_penalty() override {
 		return 0;
 	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "0x%04x", get_val());
+		return std::string(buf);
+	}
 };
 
 class IndirectX : public Operand {
@@ -64,6 +71,12 @@ public:
 
 	int get_cycle_penalty() override {
 		return 6;
+	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "(0x%04x,X)", get_val());
+		return std::string(buf);
 	}
 };
 
@@ -98,6 +111,12 @@ public:
 			return 5;
 		}
 	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "(0x%04x),Y", get_val());
+		return std::string(buf);
+	}
 };
 
 class Indirect : public Operand {
@@ -125,6 +144,12 @@ public:
 	int get_cycle_penalty() override {
 		return 6;
 	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "(0x%04x)", get_val());
+		return std::string(buf);
+	}
 };
 
 class Immediate : public Operand {
@@ -150,6 +175,12 @@ public:
 
 	int get_cycle_penalty() override {
 		return 2;
+	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "#0x%04x", get_val());
+		return std::string(buf);
 	}
 };
 
@@ -190,6 +221,12 @@ public:
 
 	int get_cycle_penalty() override {
 		return index_mode != IndexMode::no_indexing ? 4 : 3;
+	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "(0x%02x)", get_val());
+		return std::string(buf);
 	}
 };
 
@@ -243,6 +280,12 @@ public:
 			return 4;
 		}
 	}
+
+	std::string to_string() override {
+		char buf[256];
+		snprintf(buf, 256, "0x%04x", get_val());
+		return std::string(buf);
+	}
 };
 
 class Implied : public Operand {
@@ -264,6 +307,10 @@ public:
 
 	int get_cycle_penalty() override {
 		return 0;
+	}
+
+	std::string to_string() override {
+		return std::string();
 	}
 };
 

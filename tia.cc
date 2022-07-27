@@ -660,3 +660,51 @@ void TIA::process_tia() {
 		dma_val = 0;
 	}
 }
+
+void TIA::dump_tia() {
+	printf("TIA cycle num: %lu\n", tia_cycle_num);
+
+	printf("Gun X: %d  Gun Y: %d\n", ntsc.gun_x, ntsc.gun_y);
+
+	printf("Background color: %x\n", background_color);
+
+	printf("Playfield / ball color: %x\n", playfield_color);
+	printf("Playfield mask: ");
+	for (int i = 0; i < 40; i++)
+		printf("%c", ((playfield_mask >> i) & 0x01) ? '#' : '_');
+	printf("\n");
+
+	printf("Player 0 / Missile 0 color: %x\n", player0_color);
+	printf("Player 0 X: %d   Player 0 motion: %d\n", player0_x, player0_motion);
+	printf("Player 0 mask: ");
+	for (int i = 0; i < 8; i++)
+		printf("%c", ((player0_mask >> i) & 0x01) ? '#' : '_');
+	printf("\n");
+	printf("Missile 0 enabled: %s\n", missile0_enable ? "true" : "false");
+	printf("Missile 0 size: %d\n", missile0_size);
+	printf("Missile 0 X: %d  Missile 0 motion: %d\n", missile0_x, missile0_motion);
+	printf("Player 0 scale: %d\n", player0_scale);
+	printf("Player-missile 0 copy mask: ");
+	for (int i = 0; i < 10; i++)
+		printf("%c", ((player0_duplicate_mask >> i) & 0x01) ? '#' : '_');
+	printf("\n");
+
+	printf("Player 1 / Missile 1 color: %x\n", player1_color);
+	printf("Player 1 X: %d   Player 1 motion: %d\n", player1_x, player1_motion);
+	printf("Player 1 mask: ");
+	for (int i = 0; i < 8; i++)
+		printf("%c", ((player1_mask >> i) & 0x01) ? '#' : '_');
+	printf("\n");
+	printf("Missile 1 enabled: %s\n", missile1_enable ? "true" : "false");
+	printf("Missile 1 size: %d\n", missile1_size);
+	printf("Missile 1 X: %d  Missile 1 motion: %d\n", missile1_x, missile1_motion);
+	printf("Player 1 scale: %d\n", player1_scale);
+	printf("Player-missile 1 copy mask: ");
+	for (int i = 0; i < 10; i++)
+		printf("%c", ((player1_duplicate_mask >> i) & 0x01) ? '#' : '_');
+	printf("\n");
+
+	printf("Ball enabled: %s\n", ball_enable ? "true" : "false");
+	printf("Ball size: %d\n", ball_size);
+	printf("Ball X: %d  Ball motion: %d\n", ball_x, ball_motion);
+}

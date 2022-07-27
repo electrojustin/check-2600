@@ -86,4 +86,7 @@ uint16_t pop_word();
 bool is_dirty_page(uint16_t addr);
 void mark_page_clean(uint16_t addr);
 
+// Print all 128 bytes of RAM to STDOUT
+void dump_memory();
+
 #endif

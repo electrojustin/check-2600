@@ -30,6 +30,8 @@ public:
 	}
 
 	void process_pia();
+
+	void dump_pia();
 };
 
 #endif

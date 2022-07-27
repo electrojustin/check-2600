@@ -4,28 +4,120 @@
 #include <thread>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unordered_map>
+#include <iostream>
+#include <string>
+#include <string.h>
 
 #include "tia.h"
 #include "memory.h"
 #include "registers.h"
 #include "cpu.h"
 #include "pia.h"
+#include "disasm.h"
 
 std::unique_ptr<TIA> tia;
 std::unique_ptr<PIA> pia;
 
 std::unique_ptr<std::thread> emulation_thread;
 
-void emulate(bool debug) {
-	while(should_execute) {
-		if (debug) {
-			printf("Gun X: %d  Gun Y: %d\n", tia->ntsc.gun_x, tia->ntsc.gun_y);
-			printf("Timer: %x\n", pia->timer);
+std::unordered_map<uint16_t, bool> break_points;
+
+void debug_loop() {
+	std::string last_cmd = "help";
+	do {
+		printf("\n");
+		disasm_curr_insn();
+		printf(" > ");
+
+		std::string cmd;
+		getline(std::cin, cmd);
+
+		if (!cmd.length())
+			cmd = last_cmd;
+
+		if (cmd == "step") {
+			execute_next_insn();
+			tia->process_tia();
+			pia->process_pia();
+		} else if (cmd == "cont") {
+			do {
+				execute_next_insn();
+				tia->process_tia();	
+				pia->process_pia();
+			} while (should_execute && !break_points.count(program_counter));
+		} else if (cmd == "dump reg") {
 			dump_regs();
+		} else if (cmd == "dump mem") {
+			dump_memory();
+		} else if (cmd == "dump tia") {
+			tia->dump_tia();
+		} else if (cmd == "dump pia") {
+			pia->dump_pia();
+		} else if (cmd == "dump" || cmd == "dump all") {
+			dump_regs();
+			dump_memory();
+			tia->dump_tia();
+			pia->dump_pia();
+		} else if (cmd.rfind("break ") != std::string::npos) {
+			char* end_ptr;
+			long break_point = strtoul(cmd.substr(strlen("break "), cmd.length()).c_str(), &end_ptr, 16);
+			if (*end_ptr) {
+				printf("Error! Not a number\n");
+			} else if (break_point < 0 || break_point > 0xFFFF) {
+				printf("Error! Must be number between 0x0000 and 0xFFFF");
+			} else {
+				break_points[break_point] = true;
+			}
+		} else if (cmd.rfind("del ") != std::string::npos) {
+			char* end_ptr;
+			long break_point = strtoul(cmd.substr(strlen("del "), cmd.length()).c_str(), &end_ptr, 16);
+			if (*end_ptr) {
+				printf("Error! Not a number\n");
+			} else if (break_point < 0 || break_point > 0xFFFF) {
+				printf("Error! Must be number between 0x0000 and 0xFFFF\n");
+			} else if (!break_points.count(break_point)) {
+				printf("Error! No such breakpoint!\n");
+			} else {
+				break_points.erase(break_point);
+			}
+		} else if (cmd == "exit") {
+			should_execute = false;
+		} else if (cmd == "help") {
+			printf("Possible commands:\n");
+			printf("step - steps program\n");
+			printf("cont - continue until break point\n");
+			printf("dump reg - dump registers\n");
+			printf("dump mem - dump RAM bytes\n");
+			printf("dump tia - dump TIA state\n");
+			printf("dump pia - dump PIA state\n");
+			printf("dump all - dump all available state\n");
+			printf("break XYZW - sets break point to hex address 0xXYZW\n");
+			printf("del XYZW - delete break point\n");
+			printf("exit - exit program\n");
+		} else {
+			printf("Error! Unrecognized command. Type \"help\" for list of available commands\n");
+			cmd = "help";
 		}
-		execute_next_insn();
-		tia->process_tia();
-		pia->process_pia();
+
+		last_cmd = cmd;
+
+		tia->ntsc.debug_swap_buf();
+	} while (should_execute);
+
+	printf("program exiting\n");
+	exit(0);
+}
+
+void emulate(bool debug) {
+	if (debug) {
+		debug_loop();
+	} else {
+		while(should_execute) {
+			execute_next_insn();
+			tia->process_tia();
+			pia->process_pia();
+		}
 	}
 }
 

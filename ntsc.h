@@ -36,6 +36,8 @@ public:
 
 	// Fires electron gun
 	void write_pixel(uint8_t pixel=0);
+
+	void debug_swap_buf();
 };
 
 #endif
