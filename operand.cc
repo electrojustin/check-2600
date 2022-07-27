@@ -75,7 +75,7 @@ public:
 
 	std::string to_string() override {
 		char buf[256];
-		snprintf(buf, 256, "(0x%04x,X)", get_val());
+		snprintf(buf, 256, "(0x%02x,X)", zero_page_addr);
 		return std::string(buf);
 	}
 };
@@ -114,7 +114,7 @@ public:
 
 	std::string to_string() override {
 		char buf[256];
-		snprintf(buf, 256, "(0x%04x),Y", get_val());
+		snprintf(buf, 256, "(0x%02x),Y", zero_page_addr);
 		return std::string(buf);
 	}
 };
@@ -147,7 +147,7 @@ public:
 
 	std::string to_string() override {
 		char buf[256];
-		snprintf(buf, 256, "(0x%04x)", get_val());
+		snprintf(buf, 256, "(0x%04x)", absolute_addr);
 		return std::string(buf);
 	}
 };
@@ -191,7 +191,7 @@ class ZeroPage : public Operand {
 	enum IndexMode index_mode;
 
 	uint16_t get_addr() {
-		switch(index_mode) {
+		switch (index_mode) {
 			case no_indexing:
 				return zero_page_addr;
 			case x_indexing:
@@ -225,7 +225,17 @@ public:
 
 	std::string to_string() override {
 		char buf[256];
-		snprintf(buf, 256, "(0x%02x)", get_val());
+		switch (index_mode) {
+			case no_indexing:
+				snprintf(buf, 256, "0x%02x", zero_page_addr);
+				break;
+			case x_indexing:
+				snprintf(buf, 256, "0x%02x,X", zero_page_addr);
+				break;
+			case y_indexing:
+				snprintf(buf, 256, "0x%02x,Y", zero_page_addr);
+				break;
+		}
 		return std::string(buf);
 	}
 };
@@ -283,7 +293,7 @@ public:
 
 	std::string to_string() override {
 		char buf[256];
-		snprintf(buf, 256, "0x%04x", get_val());
+		snprintf(buf, 256, "0x%04x", addr);
 		return std::string(buf);
 	}
 };
