@@ -44,8 +44,15 @@ void NTSC::write_pixel(uint8_t pixel) {
 }
 
 void NTSC::debug_swap_buf() {
-	int i = gun_y * visible_columns + gun_x;
-	for (i; i < visible_columns * visible_scanlines; i++)
+	int x = gun_x - hblank;
+	int y = gun_y - vblank;
+
+	if (y < 0 || y > visible_scanlines)
+		return;
+	if (x < 0 || x >= visible_columns)
+		x = 0;
+
+	for (int i = y * visible_columns + x; i < visible_columns * visible_scanlines; i++)
 		display->framebuf[i] = 0x00;
 
 	display->swap_buf();
