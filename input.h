@@ -1,6 +1,9 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+// Paddle control values from event thread to be read by the TIA.
+// TODO: Support other types of controls.
+
 extern bool player0_up;
 extern bool player0_down;
 extern bool player0_left;

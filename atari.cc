@@ -33,6 +33,7 @@ void debug_loop() {
     std::string cmd;
     getline(std::cin, cmd);
 
+    // Repeat the previous command by default.
     if (!cmd.length())
       cmd = last_cmd;
 
@@ -95,7 +96,7 @@ void debug_loop() {
       printf("dump pia - dump PIA state\n");
       printf("dump all - dump all available state\n");
       printf("break XYZW - sets break point to hex address 0xXYZW\n");
-      printf("del XYZW - delete break point\n");
+      printf("del XYZW - delete break point at hex address 0xXYZW\n");
       printf("exit - exit program\n");
     } else {
       printf("Error! Unrecognized command. Type \"help\" for list of available "
@@ -105,6 +106,9 @@ void debug_loop() {
 
     last_cmd = cmd;
 
+    // Flush as much of the screen as we have to the user. This is useful for
+    // debugging rendering, so we can watch the scanlines draw as we "step" the
+    // program.
     tia->ntsc.debug_swap_buf();
   } while (should_execute);
 
@@ -135,14 +139,14 @@ void load_program_file(const char *filename) {
   fread(rom_backing, 1, ROM_END - ROM_START, program_file);
   fclose(program_file);
 
-  init_registers(ROM_START);
-
   tia = std::make_unique<TIA>();
   pia = std::make_unique<PIA>();
 
   auto ram = std::make_shared<RamRegion>(RAM_START, RAM_END);
   auto rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
 
+  // These are the most commonly used "mirrors" of the TIA and normal RAM
+  // memory.
   auto ram_mirror =
       std::make_shared<MirrorRegion>(RAM_START + 0x100, RAM_END + 0x100, ram);
   auto tia_mirror = std::make_shared<MirrorRegion>(
