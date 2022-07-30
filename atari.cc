@@ -52,19 +52,19 @@ void debug_loop() {
         execute_next_insn();
         tia->process_tia();
         pia->process_pia();
-      } while (should_execute && !tia->ntsc.gun_y);
+      } while (should_execute && !tia->ntsc->gun_y);
       do {
         execute_next_insn();
         tia->process_tia();
         pia->process_pia();
-      } while (should_execute && tia->ntsc.gun_y);
+      } while (should_execute && tia->ntsc->gun_y);
     } else if (cmd == "scan") {
-      int old_gun_y = tia->ntsc.gun_y;
+      int old_gun_y = tia->ntsc->gun_y;
       do {
         execute_next_insn();
         tia->process_tia();
         pia->process_pia();
-      } while (should_execute && tia->ntsc.gun_y == old_gun_y);
+      } while (should_execute && tia->ntsc->gun_y == old_gun_y);
     } else if (cmd == "dump reg") {
       dump_regs();
     } else if (cmd == "dump mem") {
@@ -129,7 +129,7 @@ void debug_loop() {
     // Flush as much of the screen as we have to the user. This is useful for
     // debugging rendering, so we can watch the scanlines draw as we "step" the
     // program.
-    tia->ntsc.debug_swap_buf();
+    tia->ntsc->debug_swap_buf();
   } while (should_execute);
 
   printf("program exiting\n");
@@ -148,7 +148,7 @@ void emulate(bool debug) {
   }
 }
 
-void load_program_file(const char *filename) {
+void load_program_file(const char *filename, int scale) {
   uint8_t *rom_backing = (uint8_t *)malloc(ROM_END - ROM_START);
   FILE *program_file = fopen(filename, "r");
   if (!program_file) {
@@ -159,7 +159,7 @@ void load_program_file(const char *filename) {
   fread(rom_backing, 1, ROM_END - ROM_START, program_file);
   fclose(program_file);
 
-  tia = std::make_unique<TIA>();
+  tia = std::make_unique<TIA>(scale);
   pia = std::make_unique<PIA>();
 
   auto ram = std::make_shared<RamRegion>(RAM_START, RAM_END);

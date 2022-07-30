@@ -204,9 +204,9 @@ public:
   const static int resp_player_offset = 5;
   const static int resp_missile_ball_offset = 4;
 
-  NTSC ntsc;
+  std::unique_ptr<NTSC> ntsc;
 
-  TIA();
+  TIA(int scale);
 
   std::shared_ptr<MappedRegion> get_memory_region() { return memory_region; }
 

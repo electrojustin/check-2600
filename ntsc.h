@@ -29,7 +29,7 @@ public:
   int gun_x;
   int gun_y;
 
-  NTSC();
+  NTSC(int scale);
 
   // Resets gun position
   void vsync();

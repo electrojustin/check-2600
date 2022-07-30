@@ -19,6 +19,6 @@ public:
   virtual void swap_buf() = 0;
 };
 
-std::unique_ptr<Display> create_display(int width, int height);
+std::unique_ptr<Display> create_display(int width, int height, int scale);
 
 #endif

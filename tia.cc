@@ -51,12 +51,12 @@ bool TIA::can_draw_playfield(int visible_x) {
 
 void TIA::draw_playfield(int visible_x) {
   if (!playfield_score_mode) {
-    ntsc.write_pixel(playfield_color);
+    ntsc->write_pixel(playfield_color);
   } else {
     if (visible_x < NTSC::visible_columns / 2) {
-      ntsc.write_pixel(player0_color);
+      ntsc->write_pixel(player0_color);
     } else {
-      ntsc.write_pixel(player1_color);
+      ntsc->write_pixel(player1_color);
     }
   }
 }
@@ -66,7 +66,7 @@ bool TIA::can_draw_ball(int visible_x) {
          mod(visible_x - ball_x, NTSC::visible_columns) < ball_size;
 }
 
-void TIA::draw_ball() { ntsc.write_pixel(playfield_color); }
+void TIA::draw_ball() { ntsc->write_pixel(playfield_color); }
 
 bool TIA::can_draw_player(int visible_x, int player_x, uint8_t player_mask,
                           int duplicate_mask, int scale) {
@@ -86,7 +86,7 @@ bool TIA::can_draw_player(int visible_x, int player_x, uint8_t player_mask,
   }
 }
 
-void TIA::draw_player(uint8_t player_color) { ntsc.write_pixel(player_color); }
+void TIA::draw_player(uint8_t player_color) { ntsc->write_pixel(player_color); }
 
 bool TIA::can_draw_missile(int visible_x, int missile_x, int missile_size,
                            bool missile_enabled, int duplicate_mask) {
@@ -105,12 +105,12 @@ bool TIA::can_draw_missile(int visible_x, int missile_x, int missile_size,
 }
 
 void TIA::draw_missile(uint8_t missile_color) {
-  ntsc.write_pixel(missile_color);
+  ntsc->write_pixel(missile_color);
 }
 
 void TIA::process_tia_cycle() {
   if (!vblank_mode) {
-    int visible_x = ntsc.gun_x - NTSC::hblank;
+    int visible_x = ntsc->gun_x - NTSC::hblank;
 
     // What objects occupy the current pixel.
     bool player0 = can_draw_player(visible_x, player0_x, player0_mask,
@@ -159,10 +159,10 @@ void TIA::process_tia_cycle() {
     } else if (!playfield_priority && ball) {
       draw_ball();
     } else {
-      ntsc.write_pixel(background_color);
+      ntsc->write_pixel(background_color);
     }
   } else {
-    ntsc.write_pixel();
+    ntsc->write_pixel();
   }
   tia_cycle_num++;
 }
@@ -199,7 +199,7 @@ void TIA::reset_sprite_position(int &sprite, int hblank_fudge, int fudge) {
 void TIA::vsync(uint8_t val) {
   bool new_vsync_mode = val & 0x02;
   if (vsync_mode && !new_vsync_mode)
-    ntsc.vsync();
+    ntsc->vsync();
   vsync_mode = new_vsync_mode;
 }
 
@@ -214,7 +214,7 @@ void TIA::vblank(uint8_t val) {
 // current clock cycle is. Scanline will be unchanged.
 void TIA::rsync(uint8_t val) {
   tia_cycle_num = -3;
-  ntsc.gun_x = -3;
+  ntsc->gun_x = -3;
 }
 
 // Sleep the CPU until we finish the scanline. Scanline number will increment,
@@ -624,7 +624,9 @@ void TIA::audc0(uint8_t val) { noise_control0 = val; }
 // Set audio channel 1 waveform
 void TIA::audc1(uint8_t val) { noise_control1 = val; }
 
-TIA::TIA() {
+TIA::TIA(int scale) {
+  ntsc = std::make_unique<NTSC>(scale);
+
   memory_region = std::make_shared<MappedRegion>(
       TIA_START, TIA_END, std::bind(&TIA::memory_read_hook, this, _1),
       std::bind(&TIA::memory_write_hook, this, _1, _2));
@@ -722,7 +724,7 @@ void TIA::process_tia() {
 void TIA::dump_tia() {
   printf("TIA cycle num: %lu\n", tia_cycle_num);
 
-  printf("Gun X: %d  Gun Y: %d\n", ntsc.gun_x, ntsc.gun_y);
+  printf("Gun X: %d  Gun Y: %d\n", ntsc->gun_x, ntsc->gun_y);
 
   printf("Background color: %x\n", background_color);
 

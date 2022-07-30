@@ -4,8 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
-NTSC::NTSC() {
-  display = create_display(visible_columns, visible_scanlines);
+NTSC::NTSC(int scale) {
+  display = create_display(visible_columns, visible_scanlines, scale);
   memset(display->framebuf, 0, visible_columns * visible_scanlines);
 
   gun_x = 0;

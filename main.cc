@@ -3,12 +3,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "atari.h"
 
 void print_usage_and_exit() {
-  printf("Usage: atari2600 [--debug] <program_file>\n");
-  exit(-1);
+  printf("Usage: atari2600 [-d] [-s scale]  -f <program_file>\n");
+  printf("-d: Enter debug mode.\n");
+  printf("-s: Set UI scale. Default is 4.\n");
+  printf("-h: Show this help menu and exit.\n");
+  exit(0);
 }
 
 int main(int argc, char **argv) {
@@ -16,30 +20,39 @@ int main(int argc, char **argv) {
 
   char *filename;
   bool debug = false;
+  int scale = 4;
 
-  if (argc < 2 || argc > 3) {
-    printf("Wrong number of arguments!\n");
-    print_usage_and_exit();
-  }
-
-  if (argc == 3) {
-    if (!strncmp(argv[1], "--debug", strlen("--debug"))) {
+  int c;
+  while ((c = getopt(argc, argv, "hds:f:")) != -1) {
+    switch (c) {
+    case 'h':
+      print_usage_and_exit();
+      break;
+    case 'd':
       debug = true;
-      filename = argv[2];
-    } else if (!strncmp(argv[2], "--debug", strlen("--debug"))) {
-      debug = true;
-      filename = argv[1];
-    } else {
-      printf("Error! Unrecognized argument!\n");
+      break;
+    case 's':
+      scale = atoi(optarg);
+      if (scale <= 0) {
+        printf("Error! Invalid scale %d\n", scale);
+        exit(-1);
+      }
+      break;
+    case 'f':
+      filename = (char *)malloc(strlen(optarg) + 1);
+      strcpy(filename, optarg);
+      break;
+    default:
+      printf("Invalid argument %c\n", c);
       print_usage_and_exit();
     }
-  } else {
-    filename = argv[1];
   }
 
-  load_program_file(filename);
+  load_program_file(filename, scale);
 
   start_emulation_thread(debug);
+
+  free(filename);
 
   return app.exec();
 }
