@@ -47,6 +47,24 @@ void debug_loop() {
         tia->process_tia();
         pia->process_pia();
       } while (should_execute && !break_points.count(program_counter));
+    } else if (cmd == "frame") {
+      do {
+        execute_next_insn();
+        tia->process_tia();
+        pia->process_pia();
+      } while (should_execute && !tia->ntsc.gun_y);
+      do {
+        execute_next_insn();
+        tia->process_tia();
+        pia->process_pia();
+      } while (should_execute && tia->ntsc.gun_y);
+    } else if (cmd == "scan") {
+      int old_gun_y = tia->ntsc.gun_y;
+      do {
+        execute_next_insn();
+        tia->process_tia();
+        pia->process_pia();
+      } while (should_execute && tia->ntsc.gun_y == old_gun_y);
     } else if (cmd == "dump reg") {
       dump_regs();
     } else if (cmd == "dump mem") {
@@ -90,6 +108,8 @@ void debug_loop() {
       printf("Possible commands:\n");
       printf("step - steps program\n");
       printf("cont - continue until break point\n");
+      printf("frame - continue until next frame\n");
+      printf("scan - continue until next scanline\n");
       printf("dump reg - dump registers\n");
       printf("dump mem - dump RAM bytes\n");
       printf("dump tia - dump TIA state\n");
