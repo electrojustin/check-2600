@@ -62,7 +62,8 @@ void TIA::draw_playfield(int visible_x) {
 }
 
 bool TIA::can_draw_ball(int visible_x) {
-  return ball_enable && visible_x >= ball_x && (visible_x - ball_x) < ball_size;
+  return ball_enable &&
+         mod(visible_x - ball_x, NTSC::visible_columns) < ball_size;
 }
 
 void TIA::draw_ball() { ntsc.write_pixel(playfield_color); }
@@ -70,14 +71,18 @@ void TIA::draw_ball() { ntsc.write_pixel(playfield_color); }
 bool TIA::can_draw_player(int visible_x, int player_x, uint8_t player_mask,
                           int duplicate_mask, int scale) {
   if (!duplicate_mask) {
-    return visible_x >= player_x &&
-           visible_x < player_x + player_size * scale &&
-           ((player_mask >> ((visible_x - player_x) / scale)) & 0x01);
+    return mod(visible_x - player_x, NTSC::visible_columns) <
+               player_size * scale &&
+           ((player_mask >>
+             (mod(visible_x - player_x, NTSC::visible_columns) / scale)) &
+            0x01);
   } else {
-    return visible_x >= player_x &&
-           ((duplicate_mask >> ((visible_x - player_x) / player_size)) &
+    return ((duplicate_mask >>
+             (mod(visible_x - player_x, NTSC::visible_columns) / player_size)) &
             0x01) &&
-           ((player_mask >> ((visible_x - player_x) % player_size)) & 0x01);
+           ((player_mask >>
+             (mod(visible_x - player_x, NTSC::visible_columns) % player_size)) &
+            0x01);
   }
 }
 
@@ -89,11 +94,13 @@ bool TIA::can_draw_missile(int visible_x, int missile_x, int missile_size,
     return false;
 
   if (!duplicate_mask) {
-    return visible_x >= missile_x && (visible_x - missile_x) < missile_size;
+    return mod(visible_x - missile_x, NTSC::visible_columns) < missile_size;
   } else {
-    return visible_x >= missile_x &&
-           ((duplicate_mask >> (visible_x - missile_x) / player_size) & 0x01) &&
-           ((visible_x - missile_x) % player_size) < missile_size;
+    return ((duplicate_mask >>
+             mod(visible_x - missile_x, NTSC::visible_columns) / player_size) &
+            0x01) &&
+           (mod(visible_x - missile_x, NTSC::visible_columns) % player_size) <
+               missile_size;
   }
 }
 
