@@ -213,8 +213,9 @@ void TIA::rsync(uint8_t val) {
 // Sleep the CPU until we finish the scanline. Scanline number will increment,
 // and we will output the rest of the pixels on the current line.
 void TIA::wsync(uint8_t val) {
-  cycle_num +=
-      (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
+  if (tia_cycle_num % NTSC::columns)
+    cycle_num +=
+        (NTSC::columns - (tia_cycle_num % NTSC::columns)) / tia_cycle_ratio;
 }
 
 // NUSIZ registers have complicated behavior.
@@ -530,49 +531,51 @@ void TIA::cxclr(uint8_t val) {
   missile0_missile1 = false;
 }
 
+// Collision registers have a quirk where they return 0x02 bitwise OR'd with the actual collision values.
+
 // Bit 7 set if missile 0 and player 0 collided.
 // Bit 6 set if missile 0 and player 1 collided.
 uint8_t TIA::cxm0p() {
-  return (uint8_t)missile0_player0 << 7 | (uint8_t)missile0_player1 << 6;
+  return (uint8_t)missile0_player0 << 7 | (uint8_t)missile0_player1 << 6 | 0x02;
 }
 
 // Bit 7 set if missile 1 and player 0 collided.
 // Bit 6 set if missile 1 and player 1 collided.
 uint8_t TIA::cxm1p() {
-  return (uint8_t)missile1_player0 << 7 | (uint8_t)missile1_player1 << 6;
+  return (uint8_t)missile1_player0 << 7 | (uint8_t)missile1_player1 << 6 | 0x02;
 }
 
 // Bit 7 set if player 0 and playfield collided.
 // Bit 6 set if player 0 and ball collided.
 uint8_t TIA::cxp0fb() {
-  return (uint8_t)player0_playfield << 7 | (uint8_t)player0_ball << 6;
+  return (uint8_t)player0_playfield << 7 | (uint8_t)player0_ball << 6 | 0x02;
 }
 
 // Bit 7 set if player 1 and playfield collided.
 // Bit 6 set if player 1 and ball collided.
 uint8_t TIA::cxp1fb() {
-  return (uint8_t)player1_playfield << 7 | (uint8_t)player1_ball << 6;
+  return (uint8_t)player1_playfield << 7 | (uint8_t)player1_ball << 6 | 0x02;
 }
 
 // Bit 7 set if missile 0 and playfield collided.
 // Bit 6 set if missile 0 and ball collided.
 uint8_t TIA::cxm0fb() {
-  return (uint8_t)missile0_playfield << 7 | (uint8_t)missile0_ball << 6;
+  return (uint8_t)missile0_playfield << 7 | (uint8_t)missile0_ball << 6 | 0x02;
 }
 
 // Bit 7 set if missile 1 and playfield collided.
 // Bit 6 set if missile 1 and ball collided.
 uint8_t TIA::cxm1fb() {
-  return (uint8_t)missile1_playfield << 7 | (uint8_t)missile1_ball << 6;
+  return (uint8_t)missile1_playfield << 7 | (uint8_t)missile1_ball << 6 | 0x02;
 }
 
 // Bit 7 set ball and playfield collided.
-uint8_t TIA::cxblpf() { return (uint8_t)ball_playfield << 7; }
+uint8_t TIA::cxblpf() { return (uint8_t)ball_playfield << 7 | 0x02; }
 
 // Bit 7 set if player 0 and player 1 collided.
 // Bit 6 set if missile 0 and missile 1 collided.
 uint8_t TIA::cxppmm() {
-  return (uint8_t)player0_player1 << 7 | (uint8_t)missile0_missile1 << 6;
+  return (uint8_t)player0_player1 << 7 | (uint8_t)missile0_missile1 << 6 | 0x02;
 }
 
 // TODO: Implement actual joystick controls
