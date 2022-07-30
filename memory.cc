@@ -14,6 +14,8 @@ uint16_t irq_vector_addr;
 
 bool dirty_pages[256] = {false};
 
+// Quick lookup table for what region(s) belong to what page.
+// This is a speedup over the linear scan.
 std::vector<std::shared_ptr<MemoryRegion>> page_table[256];
 
 std::shared_ptr<MemoryRegion> get_region_for_addr(uint16_t addr) {
@@ -25,7 +27,7 @@ std::shared_ptr<MemoryRegion> get_region_for_addr(uint16_t addr) {
       return region;
   }
 
-  // Linear scan
+  // Linear scan if we haven't cache this page yet.
   std::shared_ptr<MemoryRegion> ret = nullptr;
   for (auto region : memory_regions) {
     if (region->start_addr <= addr && region->end_addr >= addr) {
@@ -83,19 +85,19 @@ void RomRegion::write_byte(uint16_t addr, uint8_t val) {
   panic();
 }
 
-DmaRegion::DmaRegion(uint16_t start_addr, uint16_t end_addr,
-                     std::function<uint8_t(uint16_t)> read_hook,
-                     std::function<void(uint16_t, uint8_t)> write_hook) {
+MappedRegion::MappedRegion(uint16_t start_addr, uint16_t end_addr,
+                           std::function<uint8_t(uint16_t)> read_hook,
+                           std::function<void(uint16_t, uint8_t)> write_hook) {
   this->start_addr = start_addr;
   this->end_addr = end_addr;
   this->read_hook = read_hook;
   this->write_hook = write_hook;
-  type = DMA;
+  type = MAP;
 }
 
-uint8_t DmaRegion::read_byte(uint16_t addr) { return read_hook(addr); }
+uint8_t MappedRegion::read_byte(uint16_t addr) { return read_hook(addr); }
 
-void DmaRegion::write_byte(uint16_t addr, uint8_t val) {
+void MappedRegion::write_byte(uint16_t addr, uint8_t val) {
   write_hook(addr, val);
 }
 
@@ -182,6 +184,7 @@ bool is_dirty_page(uint16_t addr) { return dirty_pages[addr >> 8]; }
 
 void mark_page_clean(uint16_t addr) { dirty_pages[addr >> 8] = false; }
 
+// Dumps all 128 bytes of RAM to STDOUT
 void dump_memory() {
   printf("RAM:\n");
   printf("  ");

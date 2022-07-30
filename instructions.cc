@@ -183,7 +183,7 @@ void _asl(std::shared_ptr<Operand> operand) {
   acc = result & 0xFF;
 }
 
-// Exclusive OR
+// Exclusive OR with accumulator
 // Effects Negative and Carry
 void _eor(std::shared_ptr<Operand> operand) {
   int result = operand->get_val() ^ acc;
@@ -193,8 +193,9 @@ void _eor(std::shared_ptr<Operand> operand) {
 
 // Logical Shift Right one bit.
 // This instruction along with the rotate instructions are divided into
-// accumulator and memory variants Least significant bit is shifted into
-// accumulator
+// Accumulator and memory variants
+// Least significant bit is shifted into Carry register.
+// Also clears Negative and effects Zero
 uint8_t right_shift(uint8_t input) {
   cycle_num += 2;
 
@@ -210,12 +211,17 @@ void _lsr_memory(std::shared_ptr<Operand> operand) {
   operand->set_val(operand->get_val());
 }
 
+// Bitwise inclusive OR with Accumulator
+// Effects Negative and Zero
 void _ora(std::shared_ptr<Operand> operand) {
   int result = acc | operand->get_val();
   handle_arithmetic_flags(result);
   acc = result & 0xFF;
 }
 
+// ROtate Left.
+// Shifts Carry into least significant bit and most significant bit into Carry
+// Also effects Negative and Zero
 uint8_t rotate_left(uint8_t input) {
   cycle_num += 2;
 
@@ -232,6 +238,9 @@ void _rol_memory(std::shared_ptr<Operand> operand) {
   operand->set_val(rotate_left(operand->get_val()));
 }
 
+// ROtate Right.
+// Shifts Carry into most significant bit and least significant bit into Carry
+// Also effects Negative and Zero
 uint8_t rotate_right(uint8_t input) {
   cycle_num += 2;
 
@@ -253,7 +262,7 @@ void _ror_memory(std::shared_ptr<Operand> operand) {
 ///////////////////////////////
 
 // Note that all branch instructions add a cycle penalty for taking the branch.
-// There's no branch predictor on the 6502
+// There's also a penalty if the branch is in a different page.
 
 // Branch if Carry Clear
 void _bcc(std::shared_ptr<Operand> operand) {
@@ -270,6 +279,7 @@ void _bcc(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if Carry Set
 void _bcs(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -284,6 +294,7 @@ void _bcs(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if zero set (misleading mnemonic)
 void _beq(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -298,6 +309,7 @@ void _beq(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if negative set (misleading mnemonic)
 void _bmi(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -312,6 +324,7 @@ void _bmi(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if zero clear (misleading mnemonic)
 void _bne(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -326,6 +339,7 @@ void _bne(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if negative clear (misleading mnemonic)
 void _bpl(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -340,6 +354,7 @@ void _bpl(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if oVerflow Clear
 void _bvc(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -354,6 +369,7 @@ void _bvc(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Branch if oVerflow Set
 void _bvs(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -368,12 +384,19 @@ void _bvs(std::shared_ptr<Operand> operand) {
   }
 }
 
+// Unconditional JuMP
 void _jmp(std::shared_ptr<Operand> operand) {
-  cycle_num--; // Weird hack for this particular instruction.
+  // Most cycle numbers follow a pretty predictable pattern based on the operand
+  // type. This particular instruction doesn't, so we work around that with this
+  // decrement.
+  cycle_num--;
 
   program_counter = operand->get_val() - operand->get_insn_len();
 }
 
+// Jump to SubRoutine
+// This is similar to the x86 "call" instruction. We push the return address
+// onto the stack.
 void _jsr(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -382,6 +405,10 @@ void _jsr(std::shared_ptr<Operand> operand) {
   program_counter = operand->get_val() - operand->get_insn_len();
 }
 
+// ReTurn from Interrupt
+// Pops 1 byte into the status register, then 2 bytes into the program counter.
+// The Atari 2600 doesn't really have hardware interrupts, but it does
+// technically have software interrupts, so we include this just in case.
 void _rti(std::shared_ptr<Operand> operand) {
   cycle_num += 6;
 
@@ -389,6 +416,8 @@ void _rti(std::shared_ptr<Operand> operand) {
   program_counter = pop_word() - operand->get_insn_len();
 }
 
+// ReTurn from Subroutine
+// Pops 2 bytes into the program counter
 void _rts(std::shared_ptr<Operand> operand) {
   cycle_num += 6;
 
@@ -399,12 +428,19 @@ void _rts(std::shared_ptr<Operand> operand) {
 // Comparison Instructions //
 /////////////////////////////
 
+// BIT test.
+// Bit 7 of the operand is transferred into the Negative flag, and Bit 6 is
+// transferred into the Overflow flag. Then the operand and the accumulator are
+// bitwise AND'd together, and the Zero flag is set accordingly.
 void _bit(std::shared_ptr<Operand> operand) {
   set_negative(operand->get_val() & 0x80);
   set_overflow(operand->get_val() & 0x40);
   set_zero(!(operand->get_val() & acc));
 }
 
+// CoMPare.
+// Subtracts operand from accumulator, setting the flags appropriately, but then
+// discard the results.
 void _cmp(std::shared_ptr<Operand> operand) {
   int result = acc - operand->get_val();
   handle_arithmetic_flags(result);
@@ -412,6 +448,8 @@ void _cmp(std::shared_ptr<Operand> operand) {
   set_carry(!(result & (~0xFF)));
 }
 
+// ComPare X
+// Like CMP, but for the X register instead of the accumulator.
 void _cpx(std::shared_ptr<Operand> operand) {
   int result = index_x - operand->get_val();
   handle_arithmetic_flags(result);
@@ -419,6 +457,8 @@ void _cpx(std::shared_ptr<Operand> operand) {
   set_carry(!(result & (~0xFF)));
 }
 
+// ComPare Y
+// Like CMP, but for the Y register instead of the accumulator.
 void _cpy(std::shared_ptr<Operand> operand) {
   int result = index_y - operand->get_val();
   handle_arithmetic_flags(result);
@@ -430,27 +470,43 @@ void _cpy(std::shared_ptr<Operand> operand) {
 // Data Transfer Instructions //
 ////////////////////////////////
 
+// LoaD Accumulator
+// Sets the accumulator equal to the value of the operand.
+// Effects Negative and Zero
 void _lda(std::shared_ptr<Operand> operand) {
   acc = operand->get_val();
   handle_arithmetic_flags(acc);
 }
 
+// LoaD X
+// Like LDA, but for the X register
+// Effects Negative and Zero
 void _ldx(std::shared_ptr<Operand> operand) {
   index_x = operand->get_val();
   handle_arithmetic_flags(index_x);
 }
 
+// LoaD Y
+// Like LDA, but for the Y register
+// Effects Negative and Zero
 void _ldy(std::shared_ptr<Operand> operand) {
   index_y = operand->get_val();
   handle_arithmetic_flags(index_y);
 }
 
+// STore Accumulator
+// Stores accumulator into operand.
 void _sta(std::shared_ptr<Operand> operand) { operand->set_val(acc); }
 
+// STore X
+// Stores X register into operand.
 void _stx(std::shared_ptr<Operand> operand) { operand->set_val(index_x); }
 
+// STore Y
+// Stores Y register into operand.
 void _sty(std::shared_ptr<Operand> operand) { operand->set_val(index_y); }
 
+// Transfer Accumulator to X
 void _tax(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -458,6 +514,7 @@ void _tax(std::shared_ptr<Operand> operand) {
   handle_arithmetic_flags(index_x);
 }
 
+// Transfer Accumulator to Y
 void _tay(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -465,6 +522,7 @@ void _tay(std::shared_ptr<Operand> operand) {
   handle_arithmetic_flags(index_y);
 }
 
+// Transfer Stack pointer to X
 void _tsx(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -472,6 +530,7 @@ void _tsx(std::shared_ptr<Operand> operand) {
   handle_arithmetic_flags(stack_pointer);
 }
 
+// Transfer X to Accumulator
 void _txa(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -479,6 +538,7 @@ void _txa(std::shared_ptr<Operand> operand) {
   handle_arithmetic_flags(acc);
 }
 
+// Transfer X to Stack pointer
 void _txs(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -486,6 +546,7 @@ void _txs(std::shared_ptr<Operand> operand) {
   handle_arithmetic_flags(stack_pointer);
 }
 
+// Transfer Y to Accumulator
 void _tya(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
@@ -493,12 +554,59 @@ void _tya(std::shared_ptr<Operand> operand) {
   handle_arithmetic_flags(acc);
 }
 
+// PusH Accumulator
+// Pushes accumulator onto the stack
+void _pha(std::shared_ptr<Operand> operand) {
+  cycle_num += 3;
+
+  push_byte(acc);
+}
+
+// PusH flags (misleading mnemonic)
+// Pushes flag register onto the stack and sets the break flag
+void _php(std::shared_ptr<Operand> operand) {
+  cycle_num += 3;
+
+  push_byte(flags);
+  set_break(true);
+}
+
+// PuLl Accumulator
+// Pops 1 byte from the stack and sets the accumulator equal to it.
+// Effects Negative and Zero
+void _pla(std::shared_ptr<Operand> operand) {
+  cycle_num += 4;
+
+  acc = pop_byte();
+  handle_arithmetic_flags(acc);
+}
+
+// PuLl flags (misleading mnemonic)
+// Pops 1 byte from the stack and sets the flag register to it.
+void _plp(std::shared_ptr<Operand> operand) {
+  cycle_num += 4;
+
+  flags = pop_byte();
+}
+
 ////////////////////////////////
 // Miscellaneous Instructions //
 ////////////////////////////////
 
+// BReaK
+// Software interrupt, like "int" on x86.
+// This will push the return address and flags register to the stack and begin
+// executing the interrupt handler routine at the address specified in the
+// interrupt vector address. BRK is actually a 2 byte instruction, with the
+// second byte being ignored. This second byte is referred to as the "break
+// mark". There's no explicit hardware support for this, but the break mark is
+// often used to specify the syscall number in more complex 6502 systems.
 void _brk(std::shared_ptr<Operand> operand) {
   int irq_vector = read_word(irq_vector_addr);
+
+  // Most Atari 2600 ROMs won't use interrupts at all, and will simply clear the
+  // interrupt vector. If we reach a BRK in one of these games, we should
+  // probably just end the program.
   if (!irq_vector) {
     should_execute = false;
     return;
@@ -516,69 +624,52 @@ void _brk(std::shared_ptr<Operand> operand) {
   set_break(true);
 }
 
+// CLear Carry
 void _clc(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
   set_carry(false);
 }
 
+// CLear Decimal
 void _cld(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
   set_decimal(false);
 }
 
+// CLear Interrupt enable
 void _cli(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
   set_interrupt_enable(false);
 }
 
+// CLear oVerflow
 void _clv(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
   set_overflow(false);
 }
 
+// NO oPeration
 void _nop(std::shared_ptr<Operand> operand) { cycle_num += 2; }
 
-void _pha(std::shared_ptr<Operand> operand) {
-  cycle_num += 3;
-
-  push_byte(acc);
-}
-
-void _php(std::shared_ptr<Operand> operand) {
-  cycle_num += 3;
-
-  push_byte(flags);
-}
-
-void _pla(std::shared_ptr<Operand> operand) {
-  cycle_num += 4;
-
-  acc = pop_byte();
-  handle_arithmetic_flags(acc);
-}
-
-void _plp(std::shared_ptr<Operand> operand) {
-  cycle_num += 4;
-
-  flags = pop_byte();
-}
-
+// SEt Carry
 void _sec(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
   set_carry(true);
 }
 
+// SEt Decimal
 void _sed(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
   set_decimal(true);
 }
 
+// SEt Interrupt enable
 void _sei(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 

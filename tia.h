@@ -9,7 +9,7 @@
 #define TIA_H
 
 class TIA {
-  std::shared_ptr<DmaRegion> dma_region;
+  std::shared_ptr<MappedRegion> memory_region;
   int64_t tia_cycle_num;
   uint64_t last_process_cycle_num;
   bool vsync_mode = false;
@@ -75,38 +75,55 @@ class TIA {
   bool player0_player1 = false;
   bool missile0_missile1 = false;
 
-  uint8_t dma_val = 0;
-  std::function<void(uint8_t)> dma_write_request = nullptr;
+  uint8_t memory_val = 0;
+  std::function<void(uint8_t)> memory_write_request = nullptr;
 
-  std::function<uint8_t(void)> dma_read_table[128] = {nullptr};
-  std::function<void(uint8_t)> dma_write_table[128] = {nullptr};
+  std::function<uint8_t(void)> memory_read_table[128] = {nullptr};
+  std::function<void(uint8_t)> memory_write_table[128] = {nullptr};
 
-  uint8_t dma_read_hook(uint16_t addr);
-  void dma_write_hook(uint16_t addr, uint8_t val);
+  uint8_t memory_read_hook(uint16_t addr);
+  void memory_write_hook(uint16_t addr, uint8_t val);
+
   void process_tia_cycle();
 
+  // Helper function for handling the second half of the playfield based on
+  // whether or not mirror mode is enabled.
   void handle_playfield_mirror();
 
-  bool should_draw_playfield(int visible_x);
+  // Returns true if we can draw a playfield pixel here.
+  bool can_draw_playfield(int visible_x);
+  // Draw a playfield pixel at given position.
   void draw_playfield(int visible_x);
 
-  bool should_draw_ball(int visible_x);
+  // Returns true if we can draw a ball pixel here.
+  bool can_draw_ball(int visible_x);
+  // Draw a ball pixel.
   void draw_ball();
 
-  bool should_draw_player(int visible_x, int player_x, uint8_t player_mask,
-                          int duplicate_mask, int scale);
+  // Returns true if we can draw a player pixel here. Logic is the same for both
+  // players.
+  bool can_draw_player(int visible_x, int player_x, uint8_t player_mask,
+                       int duplicate_mask, int scale);
+  // Draw a player pixel here.
   void draw_player(uint8_t player_color);
 
-  bool should_draw_missile(int visible_x, int missile_x, int missile_size,
-                           bool missile_enabled, int duplicate_mask);
+  // Returns true if we can draw a missile pixel here. Logic is the same for
+  // both pixels.
+  bool can_draw_missile(int visible_x, int missile_x, int missile_size,
+                        bool missile_enabled, int duplicate_mask);
+  // Draw a missile pixel.
   void draw_missile(uint8_t missile_color);
 
-  // If a sprite position is reset during the horizontal blanking period, the
-  // sprite will appear at the far left side of the screen, plus a few pixels.
-  // hblank_fuzz is that "few pixel fudge factor".
+  // Sets the given sprite position to the pixel currently being drawn, plus
+  // some fudge factors. If a sprite position is reset during the horizontal
+  // blanking period, the sprite will appear at the far left side of the screen,
+  // plus a few pixels. hblank_fuzz is that "few pixel fudge factor".
   void reset_sprite_position(int &sprite, int hblank_fudge, int fudge);
 
+  // Helper function for handling the NUSIZn registers.
   void handle_nusiz(uint8_t val, int &dup_mask, int &scale, int &missile_size);
+
+  // Helper function for handling the RESMPn registers.
   void handle_resmp(int player_scale, int player_x, int &missile_x);
 
   // Graphics registers
@@ -191,10 +208,12 @@ public:
 
   TIA();
 
-  std::shared_ptr<DmaRegion> get_dma_region() { return dma_region; }
+  std::shared_ptr<MappedRegion> get_memory_region() { return memory_region; }
 
+  // Process outstanding TIA cycles
   void process_tia();
 
+  // Print helpful TIA state information to STDOUT
   void dump_tia();
 };
 

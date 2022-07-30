@@ -150,12 +150,12 @@ void load_program_file(const char *filename) {
   auto ram_mirror =
       std::make_shared<MirrorRegion>(RAM_START + 0x100, RAM_END + 0x100, ram);
   auto tia_mirror = std::make_shared<MirrorRegion>(
-      TIA_START + 0x100, TIA_END + 0x100, tia->get_dma_region());
+      TIA_START + 0x100, TIA_END + 0x100, tia->get_memory_region());
 
   memory_regions.push_back(ram);
   memory_regions.push_back(rom);
-  memory_regions.push_back(tia->get_dma_region());
-  memory_regions.push_back(pia->get_dma_region());
+  memory_regions.push_back(tia->get_memory_region());
+  memory_regions.push_back(pia->get_memory_region());
   memory_regions.push_back(ram_mirror);
   memory_regions.push_back(tia_mirror);
 

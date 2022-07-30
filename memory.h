@@ -8,8 +8,9 @@
 
 #define PAGE_SIZE 0x100
 
-enum MemoryType { ROM, RAM, DMA, STACK };
+enum MemoryType { ROM, RAM, MAP, MIRROR };
 
+// Generic class for memory region information.
 class MemoryRegion {
 public:
   MemoryType type;
@@ -20,6 +21,7 @@ public:
   virtual void write_byte(uint16_t addr, uint8_t val) = 0;
 };
 
+// General purpose read/write memory
 class RamRegion : public MemoryRegion {
 private:
   uint8_t *backing_memory;
@@ -31,6 +33,7 @@ public:
   void write_byte(uint16_t addr, uint8_t val) override;
 };
 
+// Read only memory
 class RomRegion : public MemoryRegion {
 private:
   uint8_t *backing_memory;
@@ -42,19 +45,24 @@ public:
   void write_byte(uint16_t addr, uint8_t val) override;
 };
 
-class DmaRegion : public MemoryRegion {
+// Memory mapped peripheral (PIA and TIA)
+class MappedRegion : public MemoryRegion {
 private:
   std::function<uint8_t(uint16_t)> read_hook;
   std::function<void(uint16_t, uint8_t)> write_hook;
 
 public:
-  DmaRegion(uint16_t start_addr, uint16_t end_addr,
-            std::function<uint8_t(uint16_t)> read_hook,
-            std::function<void(uint16_t, uint8_t)> write_hook);
+  MappedRegion(uint16_t start_addr, uint16_t end_addr,
+               std::function<uint8_t(uint16_t)> read_hook,
+               std::function<void(uint16_t, uint8_t)> write_hook);
   uint8_t read_byte(uint16_t addr) override;
   void write_byte(uint16_t addr, uint8_t val) override;
 };
 
+// "Mirror" region. Because of quirks in the Atari's addressing bus, multiple
+// addresses can actually point to the same memory. This is actually used a fair
+// amount in some games, because the stack, usually at 0x100, is actually
+// mirrored in the zeropage for easy access.
 class MirrorRegion : public MemoryRegion {
 private:
   std::shared_ptr<MemoryRegion> delegate;

@@ -6,10 +6,10 @@
 #define PIA_H
 
 class PIA {
-  std::shared_ptr<DmaRegion> dma_region;
+  std::shared_ptr<MappedRegion> memory_region;
 
-  uint8_t dma_read_hook(uint16_t addr);
-  void dma_write_hook(uint16_t addr, uint8_t val);
+  uint8_t memory_read_hook(uint16_t addr);
+  void memory_write_hook(uint16_t addr, uint8_t val);
 
   bool timer_needs_started = false;
   uint64_t last_process_cycle_num = 0;
@@ -26,10 +26,12 @@ public:
 
   PIA();
 
-  std::shared_ptr<DmaRegion> get_dma_region() { return dma_region; }
+  std::shared_ptr<MappedRegion> get_memory_region() { return memory_region; }
 
+  // Process outstanding PIA cycles
   void process_pia();
 
+  // Dump PIA state to STDOUT
   void dump_pia();
 };
 
