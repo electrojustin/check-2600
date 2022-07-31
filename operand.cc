@@ -349,13 +349,17 @@ std::shared_ptr<Operand> create_operand(uint16_t addr, uint8_t opcode,
       return std::make_shared<Implied>();
     break;
   case 0xC:
-    if (high_nibble && !(high_nibble & 0x1) && high_nibble != 0x6) {
+    if (high_nibble == 0x4) {
       return std::make_shared<Absolute>(addr + 1, IndexMode::no_indexing, false,
                                         true);
     } else if (high_nibble == 0x6) {
       return std::make_shared<Indirect>(addr + 1);
     } else if (high_nibble == 0xB) {
       return std::make_shared<Absolute>(abs_word, IndexMode::x_indexing, false);
+    } else if (high_nibble == 0x2 || high_nibble == 0x8 || high_nibble == 0xA ||
+               high_nibble == 0xC || high_nibble == 0xE) {
+      return std::make_shared<Absolute>(abs_word, IndexMode::no_indexing,
+                                        false);
     }
     break;
   case 0xD:
