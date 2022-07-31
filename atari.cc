@@ -15,6 +15,7 @@
 #include "pia.h"
 #include "registers.h"
 #include "tia.h"
+#include "input.h"
 
 std::unique_ptr<TIA> tia;
 std::unique_ptr<PIA> pia;
@@ -78,6 +79,23 @@ void debug_loop() {
       dump_memory();
       tia->dump_tia();
       pia->dump_pia();
+    } else if (cmd.rfind("set ") != std::string::npos) {
+      bool value = cmd[0] == 'u' && cmd[1] == 'n' ? false : true;
+      std::string direction = cmd.substr(cmd.rfind("set ") + strlen("set "), cmd.length());
+
+      if (direction == "up") {
+        player0_up = value;
+      } else if (direction == "down") {
+        player0_down = value;
+      } else if (direction == "left") {
+        player0_left = value;
+      } else if (direction == "right") {
+        player0_right = value;
+      } else if (direction == "fire") {
+        player0_fire = value;
+      } else {
+        printf("Error! Invalid direction %s\n", direction.c_str());
+      }
     } else if (cmd.rfind("break ") != std::string::npos) {
       char *end_ptr;
       long break_point = strtoul(

@@ -455,15 +455,16 @@ void TIA::hmm1(uint8_t val) {
 void TIA::hmbl(uint8_t val) { ball_motion = -(((int8_t)(val & 0xF0)) / 16); }
 
 // Delay setting GRP0 until GRP1 is set.
-// Only bit 1 is used.
-void TIA::vdelp0(uint8_t val) { player0_mask_delay = val & 0x02; }
+// Only bit 0 is used.
+void TIA::vdelp0(uint8_t val) { player0_mask_delay = val & 0x01; }
 
 // Delay setting GRP1 until GRP0 is set.
-// Only bit 1 is used.
-void TIA::vdelp1(uint8_t val) { player1_mask_delay = val & 0x02; }
+// Only bit 0 is used.
+void TIA::vdelp1(uint8_t val) { player1_mask_delay = val & 0x01; }
 
 // Delay setting ENABL until GRP1 is set.
-void TIA::vdelbl(uint8_t val) { ball_enable_delay = val & 0x02; }
+// Only bit 0 is used..
+void TIA::vdelbl(uint8_t val) { ball_enable_delay = val & 0x01; }
 
 void TIA::handle_resmp(int player_scale, int player_x, int &missile_x) {
   switch (player_scale) {
