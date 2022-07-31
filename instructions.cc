@@ -156,13 +156,20 @@ void _sbc(std::shared_ptr<Operand> operand) {
     result = carry << 8 | result_digit1 << 4 | result_digit0;
   }
   handle_arithmetic_flags(result);
-  handle_overflow(operand->get_val(), acc, result);
+  handle_overflow((-1 * operand->get_val()) & 0xFF, acc, result);
   acc = result & 0xFF;
 }
 
 //////////////////////////////
 // Bit twiddling operations //
 //////////////////////////////
+
+// Note that all shift and rotate operations are divided into accumulator and
+// memory variants. Most instructions affect the same registers no matter what
+// the opcode type is, but these shift/rotate instructions are an except since
+// the operand type can either be accumulator memory. Rather than expose the
+// implementation details of the operands to this class, we work around the
+// issue by just splitting the instructions into two related types.
 
 // Bitwise logical AND
 // Effects Negative and Zero
@@ -173,14 +180,22 @@ void _and(std::shared_ptr<Operand> operand) {
 }
 
 // Arithmetic Shift Left. Not actually different from a logical shift left.
+// Most significant bit is shifted into Carry register.
 // Effects Negative, Zero, and Carry
-void _asl(std::shared_ptr<Operand> operand) {
+uint8_t left_shift(uint8_t input) {
   cycle_num += 2;
 
-  int result = (int)acc << operand->get_val();
-  handle_arithmetic_flags(result);
-  set_carry(result & (~0xFF));
-  acc = result & 0xFF;
+  set_carry(input & 0x80);
+  input <<= 1;
+  handle_arithmetic_flags(input);
+
+  return input;
+}
+
+void _asl_acc(std::shared_ptr<Operand> operand) { acc = left_shift(acc); }
+
+void _asl_memory(std::shared_ptr<Operand> operand) {
+  operand->set_val(left_shift(operand->get_val()));
 }
 
 // Exclusive OR with accumulator
@@ -192,8 +207,6 @@ void _eor(std::shared_ptr<Operand> operand) {
 }
 
 // Logical Shift Right one bit.
-// This instruction along with the rotate instructions are divided into
-// Accumulator and memory variants
 // Least significant bit is shifted into Carry register.
 // Also clears Negative and effects Zero
 uint8_t right_shift(uint8_t input) {
@@ -225,11 +238,14 @@ void _ora(std::shared_ptr<Operand> operand) {
 uint8_t rotate_left(uint8_t input) {
   cycle_num += 2;
 
-  int result = input << 1 | get_carry();
-  handle_arithmetic_flags(result);
-  set_carry(input & 0x80);
+  bool new_carry = input & 0x80;
 
-  return result & 0xFF;
+  input <<= 1;
+  input |= get_carry();
+  handle_arithmetic_flags(input);
+  set_carry(new_carry);
+
+  return input;
 }
 
 void _rol_acc(std::shared_ptr<Operand> operand) { acc = rotate_left(acc); }
@@ -244,11 +260,14 @@ void _rol_memory(std::shared_ptr<Operand> operand) {
 uint8_t rotate_right(uint8_t input) {
   cycle_num += 2;
 
-  int result = input >> 1 | (int)get_carry() << 7;
-  handle_arithmetic_flags(result);
-  set_carry(input & 0x01);
+  bool new_carry = input & 0x01;
 
-  return result & 0xFF;
+  input <<= 1;
+  input |= (int)get_carry() << 7;
+  handle_arithmetic_flags(input);
+  set_carry(new_carry);
+
+  return input;
 }
 
 void _ror_acc(std::shared_ptr<Operand> operand) { acc = rotate_right(acc); }
@@ -677,10 +696,10 @@ void _sei(std::shared_ptr<Operand> operand) {
 }
 
 std::function<void(std::shared_ptr<Operand>)> opcode_table[256] = {
-    _brk,    _ora,    nullptr,  nullptr, nullptr, _ora, _asl,        nullptr,
-    _php,    _ora,    _asl,     nullptr, nullptr, _ora, _asl,        nullptr,
-    _bpl,    _ora,    nullptr,  nullptr, nullptr, _ora, _asl,        nullptr,
-    _clc,    _ora,    nullptr,  nullptr, nullptr, _ora, _asl,        nullptr,
+    _brk,    _ora,    nullptr,  nullptr, nullptr, _ora, _asl_memory, nullptr,
+    _php,    _ora,    _asl_acc, nullptr, nullptr, _ora, _asl_memory, nullptr,
+    _bpl,    _ora,    nullptr,  nullptr, nullptr, _ora, _asl_memory, nullptr,
+    _clc,    _ora,    nullptr,  nullptr, nullptr, _ora, _asl_memory, nullptr,
     _jsr,    _and,    nullptr,  nullptr, _bit,    _and, _rol_memory, nullptr,
     _plp,    _and,    _rol_acc, nullptr, _bit,    _and, _rol_memory, nullptr,
     _bmi,    _and,    nullptr,  nullptr, nullptr, _and, _rol_memory, nullptr,
