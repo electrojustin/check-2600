@@ -228,7 +228,12 @@ void load_program_file(const char *filename, int scale,
       TIA_START + 0x100, TIA_END + 0x100, tia->get_memory_region());
 
   memory_regions.push_back(ram);
+
   memory_regions.push_back(rom);
+  for (int addr = 0x1000; addr < rom->start_addr; addr += 0x1000)
+    memory_regions.push_back(
+        std::make_shared<MirrorRegion>(addr, addr + 0xFFF, rom));
+
   memory_regions.push_back(tia->get_memory_region());
   memory_regions.push_back(pia->get_memory_region());
   memory_regions.push_back(ram_mirror);

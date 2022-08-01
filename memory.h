@@ -98,6 +98,7 @@ bool has_side_effect(uint16_t addr);
 // Cache control. Useful for caching parsed instructions
 bool is_dirty_page(uint16_t addr);
 void mark_page_clean(uint16_t addr);
+void mark_page_dirty(uint16_t addr);
 
 // Print all 128 bytes of RAM to STDOUT
 void dump_memory();

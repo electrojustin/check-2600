@@ -114,6 +114,8 @@ uint8_t MirrorRegion::read_byte(uint16_t addr) {
 
 void MirrorRegion::write_byte(uint16_t addr, uint8_t val) {
   delegate->write_byte(addr - start_addr + delegate->start_addr, val);
+  if (is_dirty_page(addr - start_addr + delegate->start_addr))
+    mark_page_dirty(addr);
 }
 
 uint8_t read_byte(uint16_t addr) {
@@ -182,12 +184,18 @@ void write_word(uint16_t addr, uint16_t val) {
 
 bool has_side_effect(uint16_t addr) {
   auto region = get_region_for_addr(addr);
+  if (!region) {
+    printf("Error! Invalid address %x\n", addr);
+    panic();
+  }
   return region->has_side_effect(addr);
 }
 
 bool is_dirty_page(uint16_t addr) { return dirty_pages[addr >> 8]; }
 
 void mark_page_clean(uint16_t addr) { dirty_pages[addr >> 8] = false; }
+
+void mark_page_dirty(uint16_t addr) { dirty_pages[addr >> 8] = true; }
 
 // Dumps all 128 bytes of RAM to STDOUT
 void dump_memory() {

@@ -13,16 +13,17 @@ enum BankSwitcherType {
   atari32k,
 };
 
-// Atari 8K maps to 0xD000-0xDFFF and 0xF000-0xFFFF.
-// Atari 16K maps to 0x9000-0x9FFF, 0xB000-0xBFFF, 0xD000-0xDFFF, and
-// 0xF000-0xFFFF. Similar pattern for Atari 32K.
+// Atari bank switching is very simple. The banks are mapped to memory
+// addresses, and if those addresses are either read or written, the
+// corresponding bank is swapped in. ROM addresses are mirrored every 0x1000
+// starting at 0x1000.
 
 class AtariRomRegion : public MemoryRegion {
 private:
   uint8_t *backing_memory;
   int bank = 0;
   int num_banks = 0;
-  std::unordered_map<uint16_t, int> bank_map;
+  std::unordered_map<uint16_t, int> bank_map; // The magic memory addresses.
 
 public:
   AtariRomRegion(uint16_t start_addr, uint16_t end_addr, uint8_t *init_data,
