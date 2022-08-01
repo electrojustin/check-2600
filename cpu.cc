@@ -16,6 +16,7 @@ std::unordered_map<uint16_t, std::function<void()>> instruction_cache;
 
 // Cache a single instruction at the given address
 int cache_insn(uint16_t addr, bool should_succeed) {
+
   // This scenario can happen if we previously cache a series of instructions
   // and then jumped to a location earlier in the program. If that's the case,
   // the instruction cache should already be full for the rest of the page, so
@@ -25,9 +26,26 @@ int cache_insn(uint16_t addr, bool should_succeed) {
 
   // Note we don't always need byte1 and byte2 depending on the specific
   // instruction. The logic in create_operand() will ignore them when necessary.
-  uint8_t opcode = read_byte(addr);
-  uint8_t byte1 = read_byte(addr + 1);
-  uint8_t byte2 = read_byte(addr + 2);
+  uint8_t opcode;
+  uint8_t byte1;
+  uint8_t byte2;
+
+  // Don't accidentally trigger a side effect
+  if (has_side_effect(addr)) {
+    opcode = 0;
+  } else {
+    opcode = read_byte(addr);
+  }
+  if (has_side_effect(addr + 1)) {
+    byte1 = 0;
+  } else {
+    byte1 = read_byte(addr + 1);
+  }
+  if (has_side_effect(addr + 2)) {
+    byte2 = 0;
+  } else {
+    byte2 = read_byte(addr + 2);
+  }
 
   auto insn = get_insn(opcode, should_succeed);
   if (!insn) {

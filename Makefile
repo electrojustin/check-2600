@@ -3,8 +3,8 @@ CC=clang -O2 -pthread
 INCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtMultimedia
 LINK=-lstdc++ -L/usr/lib/x86_64-linux-gnu/ -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Multimedia
 ASM=acme
-atari2600: sound_files main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o disasm.o
-	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o disasm.o -o atari2600
+atari2600: sound_files main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o disasm.o bank_switchers.o
+	${CC} ${INCLUDE} ${LINK} main.o registers.o memory.o operand.o instructions.o cpu.o qt_display.o display.o ntsc.o tia.o atari.o pia.o input.o sound.o disasm.o bank_switchers.o -o atari2600
 debug: CC += -g
 debug: atari2600
 debug: tests
@@ -28,7 +28,7 @@ ntsc.o: ntsc.cc ntsc.h display.h
 	${CC} ${INCLUDE} -c ntsc.cc
 tia.o: tia.cc tia.h ntsc.h registers.h memory.h input.h sound.h
 	${CC} ${INCLUDE} -c tia.cc
-atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h pia.h
+atari.o: atari.cc atari.h tia.h memory.h registers.h cpu.h pia.h bank_switchers.h
 	${CC} ${INCLUDE} -c atari.cc
 pia.o: pia.cc pia.h registers.h memory.h input.h
 	${CC} ${INCLUDE} -c pia.cc
@@ -36,6 +36,8 @@ input.o: input.cc input.h
 	${CC} ${INCLUDE} -c input.cc
 sound.o: sound.cc sound.h
 	${CC} ${INCLUDE} -c sound.cc
+bank_switchers.o: bank_switchers.cc bank_switchers.h memory.h registers.h
+	${CC} ${INCLUDE} -c bank_switchers.cc
 disasm.o: disasm.cc disasm.h instructions.h operand.h registers.h memory.h
 	${CC} ${INCLUDE} -c disasm.cc
 sound_files:

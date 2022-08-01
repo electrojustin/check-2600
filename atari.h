@@ -1,3 +1,5 @@
+#include "bank_switchers.h"
+
 #ifndef ATARI_H
 #define ATARI_H
 
@@ -16,7 +18,8 @@
 #define STACK_BOTTOM 0x100
 
 // Loads the given program file into ROM memory.
-void load_program_file(const char *filename, int scale);
+void load_program_file(const char *filename, int scale,
+                       BankSwitcherType bank_switcher_type);
 
 // Starts emulation in a separate thread. This is to give QT5 (or whatever the
 // frontend will be) the main thread for event handling.

@@ -180,6 +180,11 @@ void write_word(uint16_t addr, uint16_t val) {
   write_byte(addr + 1, val >> 8);
 }
 
+bool has_side_effect(uint16_t addr) {
+  auto region = get_region_for_addr(addr);
+  return region->has_side_effect(addr);
+}
+
 bool is_dirty_page(uint16_t addr) { return dirty_pages[addr >> 8]; }
 
 void mark_page_clean(uint16_t addr) { dirty_pages[addr >> 8] = false; }

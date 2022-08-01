@@ -19,6 +19,11 @@ public:
 
   virtual uint8_t read_byte(uint16_t addr) = 0;
   virtual void write_byte(uint16_t addr, uint8_t val) = 0;
+
+  // Some memory addresses have side effects when you read from them, such as
+  // the bank switching addresses. This means we should not cache them, because
+  // we might trigger something unintentionally.
+  virtual bool has_side_effect(uint16_t addr) { return false; }
 };
 
 // General purpose read/write memory
@@ -57,6 +62,7 @@ public:
                std::function<void(uint16_t, uint8_t)> write_hook);
   uint8_t read_byte(uint16_t addr) override;
   void write_byte(uint16_t addr, uint8_t val) override;
+  bool has_side_effect(uint16_t addr) override { return true; }
 };
 
 // "Mirror" region. Because of quirks in the Atari's addressing bus, multiple
@@ -86,6 +92,8 @@ void push_byte(uint8_t val);
 void push_word(uint16_t val);
 uint8_t pop_byte();
 uint16_t pop_word();
+
+bool has_side_effect(uint16_t addr);
 
 // Cache control. Useful for caching parsed instructions
 bool is_dirty_page(uint16_t addr);

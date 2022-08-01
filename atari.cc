@@ -9,13 +9,14 @@
 #include <thread>
 #include <unordered_map>
 
+#include "bank_switchers.h"
 #include "cpu.h"
 #include "disasm.h"
+#include "input.h"
 #include "memory.h"
 #include "pia.h"
 #include "registers.h"
 #include "tia.h"
-#include "input.h"
 
 std::unique_ptr<TIA> tia;
 std::unique_ptr<PIA> pia;
@@ -166,22 +167,58 @@ void emulate(bool debug) {
   }
 }
 
-void load_program_file(const char *filename, int scale) {
-  uint8_t *rom_backing = (uint8_t *)malloc(ROM_END - ROM_START);
+void load_program_file(const char *filename, int scale,
+                       BankSwitcherType bank_switcher_type) {
   FILE *program_file = fopen(filename, "r");
   if (!program_file) {
     printf("could not open %s\n", filename);
     exit(-1);
   }
 
-  fread(rom_backing, 1, ROM_END - ROM_START, program_file);
-  fclose(program_file);
-
   tia = std::make_unique<TIA>(scale);
   pia = std::make_unique<PIA>();
 
   auto ram = std::make_shared<RamRegion>(RAM_START, RAM_END);
-  auto rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
+  std::vector<uint16_t> bank_addrs;
+  std::shared_ptr<MemoryRegion> rom = nullptr;
+  size_t file_size = 0x1000;
+  uint8_t *rom_backing = nullptr;
+  switch (bank_switcher_type) {
+  case BankSwitcherType::none:
+    rom_backing = (uint8_t *)malloc(file_size);
+    fread(rom_backing, 1, file_size, program_file);
+    rom = std::make_shared<RomRegion>(ROM_START, ROM_END, rom_backing);
+    break;
+  case BankSwitcherType::atari16k:
+    bank_addrs.push_back(0xFF6);
+    bank_addrs.push_back(0xFF7);
+    file_size += 0x2000;
+  // Fall through is intentional here. 0xFF8 and 0xFF9 are recycled between both
+  // schemes.
+  case BankSwitcherType::atari8k:
+    bank_addrs.push_back(0xFF8);
+    bank_addrs.push_back(0xFF9);
+    file_size += 0x1000;
+    rom_backing = (uint8_t *)malloc(file_size);
+    fread(rom_backing, 1, file_size, program_file);
+    rom = std::make_shared<AtariRomRegion>(ROM_START, ROM_END, rom_backing,
+                                           bank_addrs);
+    break;
+  case BankSwitcherType::atari32k:
+    file_size = 0x8000;
+    rom_backing = (uint8_t *)malloc(file_size);
+    fread(rom_backing, 1, file_size, program_file);
+    for (int i = 0; i < 8; i++)
+      bank_addrs.push_back(0xFF4 + i);
+    rom = std::make_shared<AtariRomRegion>(ROM_START, ROM_END, rom_backing,
+                                           bank_addrs);
+    break;
+  default:
+    printf("Error! Invalid bankswitching scheme\n");
+    exit(-1);
+  }
+
+  fclose(program_file);
 
   // These are the most commonly used "mirrors" of the TIA and normal RAM
   // memory.
