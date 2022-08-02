@@ -459,11 +459,10 @@ void _bit(std::shared_ptr<Operand> operand) {
 
 // CoMPare.
 // Subtracts operand from accumulator, setting the flags appropriately, but then
-// discard the results.
+// discard the results. Note that we don't handle overflow for CMP, unlike actual SBC.
 void _cmp(std::shared_ptr<Operand> operand) {
   int result = acc - operand->get_val();
   handle_arithmetic_flags(result);
-  handle_overflow(operand->get_val(), acc, result);
   set_carry(!(result & (~0xFF)));
 }
 
@@ -472,7 +471,6 @@ void _cmp(std::shared_ptr<Operand> operand) {
 void _cpx(std::shared_ptr<Operand> operand) {
   int result = index_x - operand->get_val();
   handle_arithmetic_flags(result);
-  handle_overflow(operand->get_val(), index_x, result);
   set_carry(!(result & (~0xFF)));
 }
 
@@ -481,7 +479,6 @@ void _cpx(std::shared_ptr<Operand> operand) {
 void _cpy(std::shared_ptr<Operand> operand) {
   int result = index_y - operand->get_val();
   handle_arithmetic_flags(result);
-  handle_overflow(operand->get_val(), index_y, result);
   set_carry(!(result & (~0xFF)));
 }
 
