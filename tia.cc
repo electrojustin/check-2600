@@ -544,7 +544,7 @@ void TIA::cxclr(uint8_t val) {
 // Bit 7 set if missile 0 and player 0 collided.
 // Bit 6 set if missile 0 and player 1 collided.
 uint8_t TIA::cxm0p() {
-  return (uint8_t)missile0_player0 << 7 | (uint8_t)missile0_player1 << 6 | 0x02;
+  return (uint8_t)missile0_player1 << 7 | (uint8_t)missile0_player0 << 6 | 0x02;
 }
 
 // Bit 7 set if missile 1 and player 0 collided.
