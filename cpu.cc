@@ -70,8 +70,8 @@ int cache_insn(uint16_t addr, bool should_succeed) {
 }
 
 // Parse from |addr| until the end of the page |addr| is located in.
-void parse_page(uint16_t addr) {
-  uint16_t page = addr & (~(PAGE_SIZE - 1));
+void parse_page(uint32_t addr) {
+  uint32_t page = addr & (~(PAGE_SIZE - 1));
   addr += cache_insn(addr, true);
   while (addr < page + PAGE_SIZE) {
     // The rest of the page may contain code, or it may contain data.
@@ -98,14 +98,11 @@ void invalidate_page(uint16_t page) {
 }
 
 void execute_next_insn() {
-  if (instruction_cache.count(program_counter)) {
-    if (is_dirty_page(program_counter)) {
+  if (is_dirty_page(program_counter))
       invalidate_page(program_counter);
-      parse_page(program_counter);
-    }
-  } else {
+
+  if (!instruction_cache.count(program_counter))
     parse_page(program_counter);
-  }
 
   instruction_cache.at(program_counter)();
 }

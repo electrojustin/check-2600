@@ -9,7 +9,7 @@ with open('waveforms.txt', 'r') as waveform_file:
 		waveform = []
 		for character in ascii_waveform:
 			if character == '-':
-				waveform.append(255)
+				waveform.append(128)
 			elif character == '_':
 				waveform.append(0)
 		waveform_data.append(waveform)

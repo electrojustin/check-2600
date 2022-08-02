@@ -219,6 +219,8 @@ void load_program_file(const char *filename, int scale,
   }
 
   fclose(program_file);
+  if (rom_backing)
+    free(rom_backing);
 
   // These are the most commonly used "mirrors" of the TIA and normal RAM
   // memory.
@@ -242,8 +244,6 @@ void load_program_file(const char *filename, int scale,
   stack_region = ram;
 
   init_registers(read_word(RESET_VECTOR));
-
-  free(rom_backing);
 }
 
 void start_emulation_thread(bool debug) {

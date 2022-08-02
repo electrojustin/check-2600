@@ -118,6 +118,10 @@ void MirrorRegion::write_byte(uint16_t addr, uint8_t val) {
     mark_page_dirty(addr);
 }
 
+bool MirrorRegion::has_side_effect(uint16_t addr) {
+  return delegate->has_side_effect(addr);
+}
+
 uint8_t read_byte(uint16_t addr) {
   auto region = get_region_for_addr(addr);
   if (!region) {

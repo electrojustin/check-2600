@@ -78,6 +78,7 @@ public:
                std::shared_ptr<MemoryRegion> delegate);
   uint8_t read_byte(uint16_t addr) override;
   void write_byte(uint16_t addr, uint8_t val) override;
+  bool has_side_effect(uint16_t addr) override;
 };
 
 extern std::vector<std::shared_ptr<MemoryRegion>> memory_regions;

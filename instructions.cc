@@ -262,7 +262,7 @@ uint8_t rotate_right(uint8_t input) {
 
   bool new_carry = input & 0x01;
 
-  input <<= 1;
+  input >>= 1;
   input |= (int)get_carry() << 7;
   handle_arithmetic_flags(input);
   set_carry(new_carry);
