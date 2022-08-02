@@ -542,7 +542,7 @@ void _tay(std::shared_ptr<Operand> operand) {
 void _tsx(std::shared_ptr<Operand> operand) {
   cycle_num += 2;
 
-  stack_pointer = index_x;
+  index_x = stack_pointer;
   handle_arithmetic_flags(stack_pointer);
 }
 
