@@ -49,7 +49,7 @@ Once you have built Check, you should see a binary in the source directory calle
 - "-d", which activates debug mode. More on this mode in the next section.
 
 ### Bank Switching
-You can usually tell what the correct size of a ROM is by looking at its filesize. 2KB or 4KB usually indicate a normal ROM, 8KB usually indicates Atari8K bank switching, etc.
+You can usually tell what the correct bankswitch configuration of a ROM is by looking at its filesize. 2KB or 4KB usually indicate a normal ROM, 8KB usually indicates Atari8K bank switching, etc.
 
 Certain games may not work yet because they rely on a bankswitching scheme that isn't yet supported. Dig-Dug, for example, includes extra RAM in the cartridge.
 
@@ -92,15 +92,15 @@ The debugger can fake input using the `set` and `unset` commands. These commands
 Patches are welcome!
 
 ### Outstanding TODOs
-[ ] Test more games and fix bugs as they arise.
-[ ] Add more bankswitching formats.
-[ ] Add support for more control schemes.
-[ ] Improve debugging interface. Possibly add a way to save and rewind state.
-[ ] Add PAL and SECAM support.
-[ ] Fix the sound subsystem.
-[ ] Investigate improving performance with proper JIT compilation.
-[ ] Write a unit test that thoroughly exercises CPU instructions and addressing modes.
-[ ] Add GUIs other than QT5 software rendering. Maybe ANSI character based, or OpenGL.
+- [ ] Test more games and fix bugs as they arise.
+- [ ] Add more bankswitching formats.
+- [ ] Add support for more control schemes.
+- [ ] Improve debugging interface. Possibly add a way to save and rewind state.
+- [ ] Add PAL and SECAM support.
+- [ ] Fix the sound subsystem.
+- [ ] Investigate improving performance with proper JIT compilation.
+- [ ] Write a unit test that thoroughly exercises CPU instructions and addressing modes.
+- [ ] Add GUIs other than QT5 software rendering. Maybe ANSI character based, or OpenGL.
 
 ### Source code overview
 I've tried to comment the code as much as I could to make it easy to understand. One of the goals of this projects was to create a modular 6502 core that could be re-used in future emulators.
@@ -131,9 +131,9 @@ I've tried to comment the code as much as I could to make it easy to understand.
 There are some very simple test ROMs located in the "tests" directory demonstrating how to get simple sprites and missiles on the screen.
 
 #### Common Gotchas
-One common "gotcha" when writing an Atari 2600 ROM is that the assembler will put all of your code at 0x0000 by default. 0x0000-0x0200 are reserved for the TIA, PIA, and RAM/stack. Sometimes your ROM will work anyway if you assemble it this way, but any absolute addresses will break. Traditionally, ROMs are assembled to occupy the 0xF000-0xFFFF address space, but the address line is only 13-bit, so anything about 0x1000 will technically do.
+One common "gotcha" when writing an Atari 2600 ROM is that the assembler will put all of your code at 0x0000 by default. 0x0000-0x0200 are reserved for the TIA, PIA, and RAM/stack. Sometimes your ROM will work anyway if you assemble it this way, but any absolute addresses will break. Traditionally, ROMs are assembled to occupy the 0xF000-0xFFFF address space, but the address line is only 13-bit, so anything above 0x1000 will technically do as long as the starting address is 4096 (0x1000) byte aligned.
 
-Another common "gotcha" is forgetting to set the reset vector. Offsets 0xFFC and 0xFFE of your ROM should be a 2-byte little-endian pointer to your entry point.
+Another common "gotcha" is forgetting to set the reset vector. Offsets 0xFFC and 0xFFE of your ROM should be a 2-byte little-endian pointer to the absolute address of your entry point.
 
 #### Intro to 2600 Programming
 The following is an excellent, but incomplete introduction to programming the 2600: https://cdn.hackaday.io/files/1646277043401568/Atari_2600_Programming_for_Newbies_Revised_Edition.pdf
