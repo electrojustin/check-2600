@@ -8,11 +8,11 @@ Atari is a Go term that very loosely translates to "check" in Chess, hence the n
 ## Compatibility
 This is the current list of titles that are known work well. Note that this list is not exhaustive, these are just the games I've tested so far.
 
-- Centipede
-- Donkey Kong
-- Mario Bros
-- Pacman
-- Pitfall
+- Centipede ![Centipede](https://raw.github.com/electrojustin/check-2600/main/screenshots/centipede.png)
+- Donkey Kong ![Donkey Kong](https://raw.github.com/electrojustin/check-2600/main/screenshots/donkey_kong.png)
+- Mario Bros ![Mario Bros](https://raw.github.com/electrojustin/check-2600/main/screenshots/mario_bros.png)
+- Pacman ![Pacman](https://raw.github.com/electrojustin/check-2600/main/screenshots/pacman.png)
+- Pitfall ![Pitfall](https://raw.github.com/electrojustin/check-2600/main/screenshots/pitfall.png)
 
 ## Known Issues
 - Sound may be 'crunchy' or non-existent on some games. This is due to limitations in QT5's multimedia libraries.
