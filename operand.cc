@@ -48,12 +48,12 @@ public:
   IndirectX(uint8_t zero_page_addr) { this->zero_page_addr = zero_page_addr; }
 
   int get_val() override {
-    uint16_t absolute_addr = read_word(zero_page_addr + index_x);
+    uint16_t absolute_addr = read_word((zero_page_addr + index_x) & 0xFF);
     return read_byte(absolute_addr);
   }
 
   void set_val(int val) override {
-    uint16_t absolute_addr = read_word(zero_page_addr + index_x);
+    uint16_t absolute_addr = read_word((zero_page_addr + index_x) & 0xFF);
     write_byte(absolute_addr, val);
   }
 
@@ -167,9 +167,9 @@ class ZeroPage : public Operand {
     case no_indexing:
       return zero_page_addr;
     case x_indexing:
-      return zero_page_addr + index_x;
+      return (zero_page_addr + index_x) & 0xFF;
     case y_indexing:
-      return zero_page_addr + index_y;
+      return (zero_page_addr + index_y) & 0xFF;
     }
   }
 
