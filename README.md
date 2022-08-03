@@ -8,15 +8,15 @@ Atari is a Go term that very loosely translates to "check" in Chess, hence the n
 ## Compatibility
 This is the current list of titles that are known work well. Note that this list is not exhaustive, these are just the games I've tested so far.
 
-###Centipede 
+### Centipede 
 ![Centipede](https://raw.github.com/electrojustin/check-2600/main/screenshots/centipede.png)
-###Donkey Kong
+### Donkey Kong
 ![Donkey Kong](https://raw.github.com/electrojustin/check-2600/main/screenshots/donkey_kong.png)
-###Mario Bros
+### Mario Bros
 ![Mario Bros](https://raw.github.com/electrojustin/check-2600/main/screenshots/mario_bros.png)
-###Pacman
+### Pacman
 ![Pacman](https://raw.github.com/electrojustin/check-2600/main/screenshots/pacman.png)
-###Pitfall
+### Pitfall
 ![Pitfall](https://raw.github.com/electrojustin/check-2600/main/screenshots/pitfall.png)
 
 ## Known Issues
