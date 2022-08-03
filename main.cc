@@ -13,6 +13,8 @@ void print_usage_and_exit() {
   printf("-d: Enter debug mode.\n");
   printf("-s: Set UI scale. Default is 4.\n");
   printf("-h: Show this help menu and exit.\n");
+  printf("-b: Select bankswitch mode.\n");
+  printf("    Currently supports Atari8K, Atari16K, and Atari32K.\n");
   exit(0);
 }
 
@@ -45,7 +47,9 @@ int main(int argc, char **argv) {
       strcpy(filename, optarg);
       break;
     case 'b':
-      if (!strncmp(optarg, "atari8k", strlen("atari8k"))) {
+      if (!strncmp(optarg, "none", strlen("none"))) {
+        bank_switcher_type = BankSwitcherType::none;
+      } else if (!strncmp(optarg, "atari8k", strlen("atari8k"))) {
         bank_switcher_type = BankSwitcherType::atari8k;
       } else if (!strncmp(optarg, "atari16k", strlen("atari16k"))) {
         bank_switcher_type = BankSwitcherType::atari16k;

@@ -26,7 +26,7 @@ public:
   virtual bool has_side_effect(uint16_t addr) { return false; }
 };
 
-// General purpose read/write memory
+// General purpose read/write memory. Also the memory type for the stack.
 class RamRegion : public MemoryRegion {
 private:
   uint8_t *backing_memory;
@@ -82,6 +82,8 @@ public:
 };
 
 extern std::vector<std::shared_ptr<MemoryRegion>> memory_regions;
+// stack_region should be a pointer to a memory address already in the above
+// vector.
 extern std::shared_ptr<MemoryRegion> stack_region;
 extern uint16_t irq_vector_addr;
 
@@ -96,7 +98,7 @@ uint16_t pop_word();
 
 bool has_side_effect(uint16_t addr);
 
-// Cache control. Useful for caching parsed instructions
+// Cache control. Useful for caching parsed instructions.
 bool is_dirty_page(uint16_t addr);
 void mark_page_clean(uint16_t addr);
 void mark_page_dirty(uint16_t addr);

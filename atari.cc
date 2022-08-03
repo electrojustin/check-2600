@@ -136,6 +136,7 @@ void debug_loop() {
       printf("dump all - dump all available state\n");
       printf("break XYZW - sets break point to hex address 0xXYZW\n");
       printf("del XYZW - delete break point at hex address 0xXYZW\n");
+      printf("[un]set (up|down|left|right|fire) - toggle an input\n");
       printf("exit - exit program\n");
     } else {
       printf("Error! Unrecognized command. Type \"help\" for list of available "
